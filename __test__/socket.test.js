@@ -31,19 +31,25 @@ describe("my awesome project", () => {
   });
 
   it("should work", (done) => {
+    //Set up the event listener on the client
     clientSocket.on("hello", (arg) => {
-      assert.equal(arg, "world");
+      //assert.equal(arg, "world");
+      expect(arg).toBe("world")
       done();
     });
+    //Start the event from the server
     serverSocket.emit("hello", "world");
   });
 
   it("should work with an acknowledgement", (done) => {
-    serverSocket.on("hi", (cb) => {
-      cb("hola");
+    //set up the event listener on the server
+    serverSocket.on("hi", (callbackfunc) => {
+      callbackfunc("hola");
     });
+    //start the event on the client
     clientSocket.emit("hi", (arg) => {
-      assert.equal(arg, "hola");
+      //assert.equal(arg, "hola");
+      expect(arg).toBe("hola")
       done();
     });
   });
