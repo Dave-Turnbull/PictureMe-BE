@@ -16,6 +16,9 @@ io.on("connection", (socket) => {
   socket.on("hi", (callbackfunc) => {
     callbackfunc("hola");
   });
+  socket.on('userCreation', (object) => {
+    object.callBack(`${object.user} created`);
+  });
 });
 
 module.exports = {app, httpServer, io};

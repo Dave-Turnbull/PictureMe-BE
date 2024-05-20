@@ -27,7 +27,7 @@ describe("my awesome project", () => {
     clientSocket.disconnect();
   });
 
-  it.only("should work with an acknowledgement", (done) => {
+  it("should work with an acknowledgement", (done) => {
     //set up the event listener on the server
 
     //start the event on the client
@@ -37,4 +37,10 @@ describe("my awesome project", () => {
       done();
     });
   });
+  it("sending a username, expecting a created username back", () =>{
+    clientSocket.emit('userCreation', {callBack: (arg) => {
+      expect(arg).toEqual('user1 created')
+    }, user: 'user1'})
+    
+  })
 });
