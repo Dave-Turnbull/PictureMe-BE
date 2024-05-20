@@ -2,7 +2,7 @@ const { createServer } = require("node:http");
 const { Server } = require("socket.io");
 const ioc = require("socket.io-client");
 const assert = require("assert");
-
+const {httpServer, io} = require("../app.js")
 function waitFor(socket, event) {
   return new Promise((resolve) => {
     socket.once(event, resolve);
@@ -10,11 +10,11 @@ function waitFor(socket, event) {
 }
 
 describe("my awesome project", () => {
-  let io, serverSocket, clientSocket;
+  let serverSocket, clientSocket;
 
   beforeAll((done) => {
-    const httpServer = createServer();
-    io = new Server(httpServer);
+    
+    
     httpServer.listen(() => {
       const port = httpServer.address().port;
       clientSocket = ioc(`http://localhost:${port}`);
