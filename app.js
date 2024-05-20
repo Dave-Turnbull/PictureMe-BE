@@ -12,13 +12,25 @@ const io = new Server(httpServer);
 
 app.get("/", sendLandingPage);
 
+// Stored users
+let users = [];
+
 io.on("connection", (socket) => {
   socket.on("hi", (callbackfunc) => {
     callbackfunc("hola");
   });
-  socket.on('userCreation', (object) => {
-    object.callBack(`${object.user} created`);
+
+  socket.on('userCreation', (username, response) => { 
+    users = [...users, username]
+    response(`${username} created`)
   });
+  socket.on('joinRoom', (response) => {
+    response(users)
+  })
+  socket.on('leaveRoom', (username) => {
+    console.log('in leaveRoom');
+    socket.emit('userLeft', `${username} has left the game`)
+  })
 });
 
 module.exports = {app, httpServer, io};

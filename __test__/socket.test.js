@@ -10,7 +10,7 @@ function waitFor(socket, event) {
 }
 
 describe("my awesome project", () => {
-  let serverSocket, clientSocket;
+  let clientSocket, clientSocket2;
 
   beforeAll((done) => {
     
@@ -18,13 +18,16 @@ describe("my awesome project", () => {
     httpServer.listen(() => {
       const port = httpServer.address().port;
       clientSocket = ioc(`http://localhost:${port}`);
+      clientSocket2 = ioc(`http://localhost:${port}`);
       clientSocket.on("connect", done);
+      clientSocket2.on("connect", done);
     });
   });
 
   afterAll(() => {
     io.close();
     clientSocket.disconnect();
+    clientSocket2.disconnect();
   });
 
   it("should work with an acknowledgement", (done) => {
@@ -37,10 +40,26 @@ describe("my awesome project", () => {
       done();
     });
   });
-  it("sending a username, expecting a created username back", () =>{
-    clientSocket.emit('userCreation', {callBack: (arg) => {
-      expect(arg).toEqual('user1 created')
-    }, user: 'user1'})
-    
+
+  it("should be able to create a user and receive confirmation", async ()=>{
+    const username = 'user1'
+    const result = await clientSocket.emitWithAck('userCreation', username)
+    expect(result).toBe(`${username} created`)
+  })
+  
+  it("should get an array of connected users when joining", async ()=>{
+    const username = 'user2'
+    await clientSocket2.emitWithAck('userCreation', username)
+    const result = await clientSocket.emitWithAck('joinRoom')
+    expect(result).toEqual(['user1', 'user2'])
+  })
+
+  it("should remove the user from userlist if they leave the game", async ()=>{
+    const username = 'user2'
+    await clientSocket2.emit('leaveRoom', username)
+    clientSocket.on('userLeft', (message) => {
+      console.log('recieved message')
+      expect(message).toBe(`${username} has left the game`)
+    })
   })
 });
