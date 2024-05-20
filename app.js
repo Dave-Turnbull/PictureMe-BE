@@ -12,8 +12,10 @@ const io = new Server(httpServer);
 
 app.get("/", sendLandingPage);
 
-// io.on("connection", (socket) => {
-//     socket.on("")
-// });
+io.on("connection", (socket) => {
+  socket.on("hi", (callbackfunc) => {
+    callbackfunc("hola");
+  });
+});
 
 module.exports = {app, httpServer, io};
