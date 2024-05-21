@@ -15,12 +15,20 @@ app.get("/", sendLandingPage);
 // Stored users
 let users = [];
 
+const createUser = (sessionID, username, isHost = false) => {
+  users.push({sessionID, username, isHost})
+}
+
 io.on("connection", (socket) => {
   socket.on("hi", (callbackfunc) => {
     callbackfunc("hola");
   });
 
-  socket.on('userCreation', (username, response) => { 
+  socket.on('userCreation', (username, response) => {
+    //createUser(this.socket.sessionid, username)
+    // const user = users.map((session) => {
+    //   if (session.sessionId === ) 
+    // })
     users = [...users, username]
     response(`${username} created`)
   });
@@ -28,9 +36,15 @@ io.on("connection", (socket) => {
     response(users)
   })
   socket.on('leaveRoom', (username) => {
-    console.log('in leaveRoom');
-    socket.emit('userLeft', `${username} has left the game`)
+    socket.broadcast.emit('userLeft', `${username} has left the game`)
   })
+
+  socket.onAny((event, ...args) => {
+    console.log('Server triggered event:\n', event, args);
+  });
+  socket.onAnyOutgoing((event, ...args) => {
+    console.log('Server sent an event to client:\n', event, args);
+  });
 });
 
 module.exports = {app, httpServer, io};
