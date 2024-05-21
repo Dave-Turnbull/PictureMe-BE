@@ -12,7 +12,6 @@ const io = new Server(httpServer);
 
 app.get("/", sendLandingPage);
 
-// Stored users
 let users = [];
 
 const createUser = (sessionID, username, isHost = false) => {
@@ -25,12 +24,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on('userCreation', (username, response) => {
-    //createUser(this.socket.sessionid, username)
-    // const user = users.map((session) => {
-    //   if (session.sessionId === ) 
-    // })
+
     users = [...users, username]
-    response(`${username} created`)
+    response(`${username} created`, users)
   });
   socket.on('joinRoom', (response) => {
     response(users)

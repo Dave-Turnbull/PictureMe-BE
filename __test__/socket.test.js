@@ -7,37 +7,47 @@ function waitFor(socket, event) {
   });
 }
 
-describe("my awesome project", () => {
-  let clientSocket, clientSocket2;
-  const serverSockets = []
 
-  beforeAll((done) => {
-    httpServer.listen(() => {
-      const port = httpServer.address().port;
-      clientSocket = ioc(`http://localhost:${port}`);
-      clientSocket2 = ioc(`http://localhost:${port}`);
-      io.on("connection", (socket) => {
-        serverSockets.push(socket)
-        done()
-      });
-      clientSocket.on("connect", done);
-      clientSocket2.on("connect", done);
-    });
+let port;
+
+beforeAll((done) => {
+  httpServer.listen(() => {
+    port = httpServer.address().port;
   });
+  done()
+});
 
-  afterAll((done) => {
-    io.close();
-    clientSocket.disconnect();
-    clientSocket2.disconnect();
-    done()
-  });
 
+afterAll((done) => {
+  io.close();
+  done()
+});
+
+
+const clientSockets = []
+
+function createClientSocket(done) {
+  const clientSocket = ioc(`http://localhost:${port}`);
+  clientSockets.push(clientSocket)
+  clientSocket.on("connect", done);
+}
+
+beforeEach((done) => {
+  createClientSocket(done)
+  createClientSocket(done)
+})
+afterEach((done) => {
+  clientSockets.forEach((clientSocket) => {
+    if (clientSocket.connected) {
+      clientSocket.disconnect();
+    }
+    done();
+  })
+})
+
+describe("a headache", () => {
   it("should work with an acknowledgement", (done) => {
-    //set up the event listener on the server
-
-    //start the event on the client
-    clientSocket.emit("hi", (arg) => {
-      //assert.equal(arg, "hola");
+    clientSockets[0].emit("hi", (arg) => {
       expect(arg).toBe("hola")
       done();
     });
@@ -45,22 +55,22 @@ describe("my awesome project", () => {
 
   it("should be able to create a user and receive confirmation", async ()=>{
     const username = 'user1'
-    const result = await clientSocket.emitWithAck('userCreation', username)
-    expect(result).toBe(`${username} created`)
+    const result = await clientSockets[0].emitWithAck('userCreation', username)
+    expect(result).toBe(`${username} created`, [username])
   })
   
   it("should get an array of connected users when joining", async ()=>{
     const username = 'user2'
-    await clientSocket2.emitWithAck('userCreation', username)
-    const result = await clientSocket.emitWithAck('joinRoom')
-    expect(result.length).toEqual(2)
+    await clientSockets[1].emitWithAck('userCreation', username)
+    const result = await clientSockets[0].emitWithAck('joinRoom')
+    expect(result).toEqual(['user1', 'user2'])
   })
 
   //userLeft event isn't triggering in the below test, cant work out why
   it("should remove the user from userlist if they leave the game and emit to other users", (done)=>{
     const username = 'user2'
-    clientSocket2.emit('leaveRoom', username)
-    clientSocket.once('userLeft', (message) => {
+    clientSockets[1].emit('leaveRoom', username)
+    clientSockets[0].once('userLeft', (message) => {
         expect(message).toBe(`${username} has left the game`)
         done()
     });
