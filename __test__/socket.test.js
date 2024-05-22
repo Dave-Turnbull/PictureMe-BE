@@ -7,62 +7,105 @@ function waitFor(socket, event) {
   });
 }
 
-describe("my awesome project", () => {
-  let clientSocket, clientSocket2;
-  const serverSockets = []
+//start the server
+beforeAll((done) => {
+  httpServer.listen(() => {
+  });
+  done()
+});
 
-  beforeAll((done) => {
-    httpServer.listen(() => {
-      const port = httpServer.address().port;
-      clientSocket = ioc(`http://localhost:${port}`);
-      clientSocket2 = ioc(`http://localhost:${port}`);
-      io.on("connection", (socket) => {
-        serverSockets.push(socket)
-        done()
-      });
-      clientSocket.on("connect", done);
-      clientSocket2.on("connect", done);
+//close the server
+afterAll((done) => {
+  io.close();
+  done()
+});
+
+//store the connected client sockets to be accessed with clientSockets[n]
+let clientSockets = []
+
+//create a client socket, push it to the client sockets array, then listen for the connection event and resolve when the connection happens
+//returns a promise so can be used with async await or .then()
+function createClientSocket(userID) {
+  const clientSocket = ioc(`http://localhost:${httpServer.address().port}`, {
+    auth: {
+      userID
+    }
+  });
+  clientSockets.push(clientSocket)
+  return new Promise((resolve, reject) => {
+    clientSocket.on("connect", () => {
+      resolve()
     });
-  });
+  })
+}
 
-  afterAll((done) => {
-    io.close();
-    clientSocket.disconnect();
-    clientSocket2.disconnect();
-    done()
-  });
+//create 2 client sockets for every test in the clientSockets array
+beforeEach(async () => {
+  await createClientSocket(1)
+  await createClientSocket()
+  return
+})
 
+//disconenct all client sockets in the clientSocket array after every test
+afterEach((done) => {
+  clientSockets.forEach((clientSocket) => {
+    if (clientSocket.connected) {
+      //disconnect the client
+      clientSocket.disconnect();
+      //remove the client
+      clientSocket.off()
+    }
+  })
+  //reset the clientSockets array so it isnt full of disconnected clients
+  clientSockets = []
+  done();
+})
+
+describe("a headache", () => {
+  it("Clients should connect", () => {
+    clientSockets.forEach((clientSocket) => {
+      expect(clientSocket.connected).toBeTruthy()
+    })
+    expect(clientSockets.length > 0).toBeTruthy()
+  })
   it("should work with an acknowledgement", (done) => {
-    //set up the event listener on the server
-
-    //start the event on the client
-    clientSocket.emit("hi", (arg) => {
-      //assert.equal(arg, "hola");
+    clientSockets[0].emit("hi", (arg) => {
       expect(arg).toBe("hola")
       done();
     });
   });
-
   it("should be able to create a user and receive confirmation", async ()=>{
     const username = 'user1'
-    const result = await clientSocket.emitWithAck('userCreation', username)
-    expect(result).toBe(`${username} created`)
+    const result = await clientSockets[0].emitWithAck('userCreation', username)
+    expect(result).toBe(`${username} created`, [username])
   })
-  
   it("should get an array of connected users when joining", async ()=>{
     const username = 'user2'
-    await clientSocket2.emitWithAck('userCreation', username)
-    const result = await clientSocket.emitWithAck('joinRoom')
-    expect(result.length).toEqual(2)
+    await clientSockets[1].emitWithAck('userCreation', username)
+    const result = await clientSockets[0].emitWithAck('joinRoom')
+    expect(result).toEqual(['user1', 'user2'])
   })
-
-  //userLeft event isn't triggering in the below test, cant work out why
   it("should remove the user from userlist if they leave the game and emit to other users", (done)=>{
     const username = 'user2'
-    clientSocket2.emit('leaveRoom', username)
-    clientSocket.once('userLeft', (message) => {
+    clientSockets[1].emit('leaveRoom', username)
+    clientSockets[0].once('userLeft', (message) => {
         expect(message).toBe(`${username} has left the game`)
         done()
     });
+  })
+  it("if user has existing user ID, recieve it from the server", (done) => {
+    clientSockets[0].emit("getUserID", (userID) => {
+      expect(userID).toBe(1)
+      done()
+    })
+  })
+  it("if user has no existing user ID, recieve one from the server", async() => {
+    let receivedUserID = await new Promise((resolve) => {
+      clientSockets[1].emit("getUserID", (userID) => {
+        resolve(userID)
+      })
+    })
+    clientSockets[1].auth.userID = receivedUserID
+    expect(receivedUserID).toBe('a random id')
   })
 });
