@@ -1,8 +1,7 @@
 const ioc = require("socket.io-client");
 const { httpServer, io } = require("../app.js");
 
-const idRegex =
-  /^[0-9a-zA-Z-_]{10}$/i;
+const idRegex = /^[\w_\-]{9,10}$/i;
 
 function waitFor(socket, event) {
   return new Promise((resolve) => {
@@ -112,12 +111,12 @@ describe("a headache", () => {
     expect(typeof receivedUserID).toBe("string");
     expect(idRegex.test(receivedUserID)).toBeTruthy();
   });
-  it.skip("a room can be created, client recieves ID of room", async () => {
-    let receivedRoomID = await new Promise((resolve) => {
-      clientSockets[1].emit("createRoom", (roomID) => {
-        resolve(roomID);
+  it.only("a room can be created, client recieves ID of room", async () => {
+    let response = await new Promise((resolve) => {
+      clientSockets[1].emit("createRoom", (res, rooms) => {
+        resolve( { res, rooms } );
       });
     });
-    expect(idRegex.test(receivedRoomID)).toBeTruthy();
+    expect(response.res).toBe("room created");
   });
 });

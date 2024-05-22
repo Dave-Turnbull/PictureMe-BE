@@ -4,23 +4,17 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const { sendLandingPage } = require("./controllers/http-controllers");
-const shortid = require('shortid');
+const { createUser, generateID } = require("./utils/utils");
+const { Room } = require("./utils/class.js");
 
 app.use(cors());
 const httpServer = http.createServer(app);
 
 const io = new Server(httpServer);
-
 app.get("/", sendLandingPage);
 
 let users = [];
-
-const createUser = (sessionID, username, isHost = false) => {
-  users.push({ sessionID, username, isHost });
-};
-const generateID = () => {
-  return shortid.generate();
-};
+const rooms = {};
 
 //Create sessions so users can reconnect
 io.use(async (socket, next) => {
@@ -42,6 +36,13 @@ io.use(async (socket, next) => {
 io.on("connection", (socket) => {
   socket.on("getUserID", (callbackfunc) => {
     callbackfunc(socket.userID);
+  });
+
+  socket.on("createRoom", (respond) => {
+    const generatedRoomID = generateID();
+    socket.join( generatedRoomID );
+    rooms[generatedRoomID] = new Room(generatedRoomID)
+    respond("room created", rooms);
   });
 
   socket.on("hi", (callbackfunc) => {
