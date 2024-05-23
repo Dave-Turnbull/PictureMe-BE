@@ -4,9 +4,8 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const { sendLandingPage } = require("./controllers/http-controllers");
-const { createUser, generateID } = require("./utils/utils");
+const {generateID } = require("./utils/utils");
 const { Room } = require("./utils/class.js");
-const { log } = require("console");
 
 app.use(cors());
 const httpServer = http.createServer(app);
@@ -33,28 +32,44 @@ io.use(async (socket, next) => {
   next();
 });
 
+
 io.on("connection", (socket) => {
   socket.on("getUserID", (callbackfunc) => {
     callbackfunc(socket.userID);
   });
-  socket.on("createRoom", (user, respond) => {
+  socket.on("createRoom", (user, response) => {
+    const userObj = {userID:socket.userID, username: user.username}
     const generatedRoomID = generateID();
     socket.join(generatedRoomID);
-    rooms[generatedRoomID] = new Room(generatedRoomID, user);
-    respond("room created", rooms);
+    rooms[generatedRoomID] = new Room(userObj, generatedRoomID);
+    response("room created", rooms[generatedRoomID]);
   });
   socket.on("joinRoom", ({ user, roomID }, response) => {
-    rooms[roomID].addUser(user);
+    const userObj = {userID:socket.userID, username: user.username}
+    rooms[roomID].addUser(userObj);
+    io.in(roomID).emit('updateUsersArray', rooms[roomID].users)
     response("joined", rooms[roomID]);
   });
+  socket.on("startGame", ({roomID}, response) => {
+    rooms[roomID].addGame()
+    response("game started", rooms[roomID].game.rounds[0]);
+  })
+
   socket.on("leaveRoom", (username) => {
     socket.broadcast.emit("userLeft", `${username} has left the game`);
   });
+
+  socket.on("imageUpload", ({ roomID, imageData }, response) => {
+    const currentRound = '1'
+     console.log(rooms[roomID].game.rounds[currentRound]);
+    rooms[roomID].game.rounds[currentRound].addImage(imageData)
+    response("file uploaded")
+  })
   socket.onAny((event, ...args) => {
     console.log("Server triggered event:\n", event, args);
   });
   socket.onAnyOutgoing((event, ...args) => {
-    console.log("Server sent an event to client:\n", event, args);
+    // console.log("Server sent an event to client:\n", event, args);
   });
 });
 

@@ -64,7 +64,7 @@ afterEach((done) => {
 
 let createdRoomID;
 
-describe("a headache", () => {
+describe("PictureMe", () => {
   it("Clients should connect", () => {
     clientSockets.forEach((clientSocket) => {
       expect(clientSocket.connected).toBeTruthy();
@@ -101,13 +101,13 @@ describe("a headache", () => {
       clientSockets[1].emit(
         "createRoom",
         { username: "user1" },
-        (res, rooms) => {
-          resolve({ res, rooms });
+        (message, rooms) => {
+          resolve({ message, rooms });
         }
       );
     });
-    createdRoomID = Object.keys(response.rooms)[0];
-    expect(response.res).toBe("room created");
+    createdRoomID = response.rooms.roomID
+    expect(response.message).toBe("room created");
   });
   it("upon joining room, adds user to user array on room object and recieves confirmation string", async () => {
     let response = await new Promise((resolve) => {
@@ -121,8 +121,24 @@ describe("a headache", () => {
     });
     expect(response.res).toBe("joined");
     expect(response.rooms.users).toEqual([
-      { username: "user1" },
-      { username: "user2" },
+      { userID: expect.any(String), username: "user1" },
+      { userID: expect.any(String), username: "user2" },
     ]);
   });
-});
+  it('upon game start the users in the room should be put into the players array, sent round 1 data', async () => {
+    let response = await new Promise((resolve) => {
+      clientSockets[0].emit("startGame", { roomID: createdRoomID }, (res, rooms) => {
+        resolve({res, rooms})
+      })
+    });
+    expect(response.res).toBe("game started")
+  })
+  it('when imageUpload is triggered, the file received is attached to the player object inside the rounds array to be the value of img ', async () => {
+    let response = await new Promise((resolve) => {
+      clientSockets[0].emit("imageUpload", { roomID: createdRoomID, imageData: 'mockImageData' }, (res, rooms) => {
+        resolve({res})
+      })
+    });
+    expect(response.res).toBe("file uploaded")
+  })
+})
