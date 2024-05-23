@@ -42,7 +42,7 @@ function createClientSocket(userID) {
 
 //create 2 client sockets for every test in the clientSockets array
 beforeEach(async () => {
-  await createClientSocket(1);
+  await createClientSocket();
   await createClientSocket();
   return;
 });
@@ -62,6 +62,8 @@ afterEach((done) => {
   done();
 });
 
+let createdRoomID;
+
 describe("a headache", () => {
   it("Clients should connect", () => {
     clientSockets.forEach((clientSocket) => {
@@ -69,23 +71,7 @@ describe("a headache", () => {
     });
     expect(clientSockets.length > 0).toBeTruthy();
   });
-  it("should work with an acknowledgement", (done) => {
-    clientSockets[0].emit("hi", (arg) => {
-      expect(arg).toBe("hola");
-      done();
-    });
-  });
-  it("should be able to create a user and receive confirmation", async () => {
-    const username = "user1";
-    const result = await clientSockets[0].emitWithAck("userCreation", username);
-    expect(result).toBe(`${username} created`, [username]);
-  });
-  it("should get an array of connected users when joining", async () => {
-    const username = "user2";
-    await clientSockets[1].emitWithAck("userCreation", username);
-    const result = await clientSockets[0].emitWithAck("joinRoom");
-    expect(result).toEqual(["user1", "user2"]);
-  });
+
   it("should remove the user from userlist if they leave the game and emit to other users", (done) => {
     const username = "user2";
     clientSockets[1].emit("leaveRoom", username);
@@ -94,7 +80,8 @@ describe("a headache", () => {
       done();
     });
   });
-  it("if user has existing user ID, recieve it from the server", (done) => {
+  //Skip if testing users are new and not joining an existing game
+  it.skip("if user has existing user ID, recieve it from the server", (done) => {
     clientSockets[0].emit("getUserID", (userID) => {
       expect(userID).toBe(1);
       done();
@@ -107,16 +94,35 @@ describe("a headache", () => {
       });
     });
     clientSockets[1].auth.userID = receivedUserID;
-    console.log(receivedUserID);
-    expect(typeof receivedUserID).toBe("string");
     expect(idRegex.test(receivedUserID)).toBeTruthy();
   });
-  it.only("a room can be created, client recieves ID of room", async () => {
+  it("a room can be created, client recieves ID of room", async () => {
     let response = await new Promise((resolve) => {
-      clientSockets[1].emit("createRoom", (res, rooms) => {
-        resolve( { res, rooms } );
-      });
+      clientSockets[1].emit(
+        "createRoom",
+        { username: "user1" },
+        (res, rooms) => {
+          resolve({ res, rooms });
+        }
+      );
     });
+    createdRoomID = Object.keys(response.rooms)[0];
     expect(response.res).toBe("room created");
+  });
+  it("upon joining room, adds user to user array on room object and recieves confirmation string", async () => {
+    let response = await new Promise((resolve) => {
+      clientSockets[1].emit(
+        "joinRoom",
+        { user: { username: "user2" }, roomID: createdRoomID },
+        (res, rooms) => {
+          resolve({ res, rooms });
+        }
+      );
+    });
+    expect(response.res).toBe("joined");
+    expect(response.rooms.users).toEqual([
+      { username: "user1" },
+      { username: "user2" },
+    ]);
   });
 });

@@ -6,6 +6,7 @@ const { Server } = require("socket.io");
 const { sendLandingPage } = require("./controllers/http-controllers");
 const { createUser, generateID } = require("./utils/utils");
 const { Room } = require("./utils/class.js");
+const { log } = require("console");
 
 app.use(cors());
 const httpServer = http.createServer(app);
@@ -13,7 +14,6 @@ const httpServer = http.createServer(app);
 const io = new Server(httpServer);
 app.get("/", sendLandingPage);
 
-let users = [];
 const rooms = {};
 
 //Create sessions so users can reconnect
@@ -37,28 +37,19 @@ io.on("connection", (socket) => {
   socket.on("getUserID", (callbackfunc) => {
     callbackfunc(socket.userID);
   });
-
-  socket.on("createRoom", (respond) => {
+  socket.on("createRoom", (user, respond) => {
     const generatedRoomID = generateID();
-    socket.join( generatedRoomID );
-    rooms[generatedRoomID] = new Room(generatedRoomID)
+    socket.join(generatedRoomID);
+    rooms[generatedRoomID] = new Room(generatedRoomID, user);
     respond("room created", rooms);
   });
-
-  socket.on("hi", (callbackfunc) => {
-    callbackfunc("hola");
-  });
-  socket.on("userCreation", (username, response) => {
-    users = [...users, username];
-    response(`${username} created`, users);
-  });
-  socket.on("joinRoom", (response) => {
-    response(users);
+  socket.on("joinRoom", ({ user, roomID }, response) => {
+    rooms[roomID].addUser(user);
+    response("joined", rooms[roomID]);
   });
   socket.on("leaveRoom", (username) => {
     socket.broadcast.emit("userLeft", `${username} has left the game`);
   });
-
   socket.onAny((event, ...args) => {
     console.log("Server triggered event:\n", event, args);
   });
