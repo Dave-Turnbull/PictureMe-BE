@@ -1,52 +1,72 @@
 Socket events:
 
 roomObj = {
-  roomID: 'mockRoomID',
-  host: { username: 'user1' },
-  users: [ { username: 'user1' }, { username: 'user2' } ],
-  game: { players: [ { username: 'user1' }, { username: 'user2' } ], rounds: {
-  '1': { roundBase: undefined, roundImages: [ { 'user1': { img: "imagedata", votes: 0 } }, { 'user2': { img: "imagedata", votes: 0 } } ] }
+roomID: 'mockRoomID',
+host: { userID: 'userID', username: 'user1' },
+users: [ { userID: 'userID', username: 'user1' }, { userID: 'userID', username: 'user2' } ],
+game: {
+players: [ { userID: 'userID', username: 'user1', score: 0 }, { userID: 'userID', username: 'user2', score: 0 } ],
+rounds: {
+'1': {
+instructions: undefined,
+roundImages: [{
+userID: 'userId',
+img: ''
+votes: Num
+},
+{
+userID: 'userID' ,
+img: ''
+votes: Num
+} ]
+}
 } } }
 
+imageObj = {
+user: { userID: 'userID', username: 'user1' },
+imgdata: 'buffer',
+votes: Num
+}
+
 'connection'
- - handshake, server listening
- - server will check if socket has userID, if not generates one, if so will push user to existing game
+
+- handshake, server listening
+- server will check if socket has userID, if not generates one, if so will push user to existing game
 
 'getUserID'
+
 - first event to retrieve randomly generated userID
-- input: none
-- recieved: 'userID'
+- takes: none
+- sends: 'userID'
 
 'createRoom'
+
 - host creates room, gets roomObj back
-- input: {userID: 'userID', username: 'username'}
-- recieved: {res: 'room created', roomObj}
+- takes: {userID: 'userID', username: 'username'}
+- sends: {res: 'room created', roomObj}
 
 'joinRoom'
-- input: {username: 'username', roomID: 'roomID'}
-- recieved: {res: 'joined', roomObj}
+
+- takes: {username: 'username', roomID: 'roomID'}
+- sends: {res: 'joined', roomObj}
 
 'startGame'
-- input: {roomID: 'roomID'}
-- recieved: {res: 'game started', { round: 'something red', roundImages: [] }}
+
+- takes: {roomID: 'roomID'}
+- sends: {res: 'game started', roundData: 'something red'}
 
 'imageUpload'
-- input: { roomID: 'roomID', imageData: { 'user1': { img: "imagedata", votes: 0 } } }
-- recieved: {res: 'file uploaded'}
-- Listen for event: 'submissionEnd', FE recieves: [{ 'user1': { img: "imagedata", votes: 0 } }, { 'user2': { img: "imagedata", votes: 0 } }]
+
+- takes: { roomID: 'roomID', imageData: { userID:'userID', img: "imagedata", votes: 0 } }
+- sends: {res: 'file uploaded'}
+- Listen for event: 'submissionEnd', FE recieves: [{ userID: 'userID', { img: "imagedata", votes: 0 } }, { userID: 'userID', { img: "imagedata", votes: 0 } }]
 
 'userVote'
-- input:
-recieved: 
+
+- takes: {roomID: 'roomID', userScore: { userID: 'senderID', score: 'score'}, imgTakerID: 'takerID'}
+- sends: ( to everyone ) event - 'userVoted'
 
 'leaveRoom'
-- input: 'roomID'
-- recieved: 'string'
 
-{
-image1: { 
-    user: {},
-    imgdata: ''
-    votes: Num
-}
-}
+- takes: 'roomID'
+- sends: 'string'

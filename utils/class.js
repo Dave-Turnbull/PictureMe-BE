@@ -11,13 +11,15 @@ class Room {
     const players = this.users;
     const game = new Game(players);
     this.game = game;
-    game.addRound('1', rules);
+    game.addRound("1", rules);
   }
 }
 
 class Game {
   constructor(players) {
-    this.players = players.map((player) => { return { username: player.username, score: 0 } });
+    this.players = players.map((player) => {
+      return { userID: player.userID, username: player.username, score: 0 };
+    });
     this.rounds = {};
   }
   addRound(roundNumber, rules) {
@@ -27,13 +29,21 @@ class Game {
 
 class Round {
   constructor(roundRules) {
-    this.round = roundRules;
-    this.roundImages = []
+    this.instructions = roundRules;
+    this.roundImages = [];
   }
   addImage(imgData) {
-    this.roundImages.push(imgData)
+    this.roundImages.push({ ...imgData, votes: 0 });
+  }
+  addVote(userID) {
+    this.roundImages.forEach((image) => {
+      if (image.userID === userID) {
+        image.votes++;
+      }
+    });
   }
 }
+
 module.exports = { Room, Game, Round };
 
 //Testing a full game sequence

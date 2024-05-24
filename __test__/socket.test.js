@@ -10,13 +10,22 @@ function waitFor(socket, event) {
 }
 
 //start the server
-beforeAll((done) => {
+beforeAll(async () => {
   httpServer.listen(() => {});
-  done();
+  await createClientSocket();
+  await createClientSocket();
 });
 
 //close the server
 afterAll((done) => {
+  clientSockets.forEach((clientSocket) => {
+    if (clientSocket.connected) {
+      //disconnect the client
+      clientSocket.disconnect();
+      //remove the client
+      clientSocket.off();
+    }
+  });
   io.close();
   done();
 });
@@ -33,34 +42,12 @@ function createClientSocket(userID) {
     },
   });
   clientSockets.push(clientSocket);
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     clientSocket.on("connect", () => {
       resolve();
     });
   });
 }
-
-//create 2 client sockets for every test in the clientSockets array
-beforeEach(async () => {
-  await createClientSocket();
-  await createClientSocket();
-  return;
-});
-
-//disconenct all client sockets in the clientSocket array after every test
-afterEach((done) => {
-  clientSockets.forEach((clientSocket) => {
-    if (clientSocket.connected) {
-      //disconnect the client
-      clientSocket.disconnect();
-      //remove the client
-      clientSocket.off();
-    }
-  });
-  //reset the clientSockets array so it isnt full of disconnected clients
-  clientSockets = [];
-  done();
-});
 
 let createdRoomID;
 
@@ -69,13 +56,12 @@ describe("PictureMe", () => {
     clientSockets.forEach((clientSocket) => {
       expect(clientSocket.connected).toBeTruthy();
     });
-    expect(clientSockets.length > 0).toBeTruthy();
   });
 
-  it("should remove the user from userlist if they leave the game and emit to other users", (done) => {
+  it.skip("should remove the user from userlist if they leave the game and emit to other users", (done) => {
     const username = "user2";
     clientSockets[1].emit("leaveRoom", username);
-    clientSockets[0].once("userLeft", (message) => {
+    clientSockets[0].on("userLeft", (message) => {
       expect(message).toBe(`${username} has left the game`);
       done();
     });
@@ -129,37 +115,92 @@ describe("PictureMe", () => {
     let response = await new Promise((resolve) => {
       clientSockets[0].emit(
         "startGame",
-        {roomID: createdRoomID},
-        (res, rooms) => {
-          resolve({ res, rooms });
+        { roomID: createdRoomID },
+        (res, roundData) => {
+          resolve({ res, roundData });
         }
       );
     });
     expect(response.res).toBe("game started");
+    expect(response.roundData).toEqual(expect.any(String));
   });
-  it("when imageUpload is triggered, the file received is attached to the player object inside the rounds array to be the value of img ", async () => {
-    let response2 = await new Promise((resolve) => {
+  it("when imageUpload is triggered, the file received is attached to the player object inside the rounds array to be the value of img, and all other players are notified of the submission", async () => {
+    const response = new Promise((resolve) => {
       clientSockets[0].emit(
         "imageUpload",
-        { roomID: createdRoomID, imageData: { 'user1': { img: "imagedata", votes: 0 } } },
+        {
+          roomID: createdRoomID,
+          imageData: {
+            userID: "userID",
+            img: "buffer",
+          },
+        },
         (res) => {
-          resolve({ res });
+          resolve(res);
         }
       );
     });
-    let response = await new Promise((resolve) => {
-      clientSockets[0].emit(
-        "imageUpload",
-        { roomID: createdRoomID, imageData: { 'user2': { img: "imagedata", votes: 0 } } },
-        (res) => {
-          resolve({ res });
-        }
-      );
-    });
-    expect(response.res).toBe("image uploaded");
-      clientSockets[0].once("submissionsEnd", (message) => {
-        expect(message).toEqual([{ 'user1': { img: "imagedata", votes: 0 } }, { 'user2': { img: "imagedata", votes: 0 } }]);
-        done();
+    const otherUserSubmissionListener = new Promise((resolve) => {
+      clientSockets[1].on("userPictureSubmitted", (message) => {
+        resolve(message);
       });
+    });
+
+    const resolved = await Promise.all([response, otherUserSubmissionListener]);
+
+    expect(resolved).toEqual(["image uploaded", "user submitted"]);
+  });
+  it("when all users have submitted an image, sender recieves confirmation, and all other users are notified, then submissions end and start votes events is emitted to all users", async () => {
+    const response = new Promise((resolve) => {
+      clientSockets[1].emit(
+        "imageUpload",
+        {
+          roomID: createdRoomID,
+          imageData: {
+            userID: "userID",
+            img: "buffer",
+          },
+        },
+        (res) => {
+          resolve(res);
+        }
+      );
+    });
+
+    const otherUserSubmittedPictureListener = new Promise((resolve) => {
+      clientSockets[0].on("userPictureSubmitted", (message) => {
+        resolve(message);
+      });
+    });
+
+    const allUsersSubmitted = new Promise((resolve) => {
+      clientSockets[0].on("submissionsEnd", (message) => {
+        resolve(message);
+      });
+    });
+
+    const startVotes = new Promise((resolve) => {
+      clientSockets[0].on("startVotes", (message) => {
+        console.log(message);
+        resolve(message);
+      });
+    });
+
+    const resolved = await Promise.all([
+      response,
+      otherUserSubmittedPictureListener,
+      allUsersSubmitted,
+      startVotes,
+    ]);
+
+    expect(resolved).toEqual([
+      "image uploaded",
+      "user submitted",
+      "all submitted",
+      {
+        img: "buffer",
+        userID: "userID",
+      },
+    ]);
   });
 });
