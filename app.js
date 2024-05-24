@@ -13,7 +13,7 @@ const httpServer = http.createServer(app);
 const io = new Server(httpServer);
 app.get("/", sendLandingPage);
 
-const rooms = {};
+  const rooms = {};
 
 //Create sessions so users can reconnect
 io.use(async (socket, next) => {
@@ -32,45 +32,70 @@ io.use(async (socket, next) => {
   next();
 });
 
+const rules = ['something red', 'something from your fridge', 'something nerdy', 'something from your childhood', 'something from your wardrobe']
 
 io.on("connection", (socket) => {
+
+  let room
+  let game
+  let players
+  let rounds
+  let currentRound
+  let currentRoundImageData
+
   socket.on("getUserID", (callbackfunc) => {
     callbackfunc(socket.userID);
   });
+
   socket.on("createRoom", (user, response) => {
     const userObj = {userID:socket.userID, username: user.username}
-    const generatedRoomID = generateID();
-    socket.join(generatedRoomID);
-    rooms[generatedRoomID] = new Room(userObj, generatedRoomID);
-    response("room created", rooms[generatedRoomID]);
+    const roomID = generateID();
+    socket.join(roomID);
+    rooms[roomID] = new Room(userObj, roomID);
+    response("room created", rooms[roomID]);
   });
+
   socket.on("joinRoom", ({ user, roomID }, response) => {
+    room = rooms[roomID]
     const userObj = {userID:socket.userID, username: user.username}
-    rooms[roomID].addUser(userObj);
-    io.in(roomID).emit('updateUsersArray', rooms[roomID].users)
-    response("joined", rooms[roomID]);
+    room.addUser(userObj);
+    io.in(roomID).emit('updateUsersArray', room.users)
+    response("joined", room);
   });
-  socket.on("startGame", ({roomID}, response) => {
-    rooms[roomID].addGame()
-    response("game started", rooms[roomID].game.rounds[0]);
+
+  socket.on("startGame", ({ roomID }, response) => {
+    room = rooms[roomID]
+    room.addGame(rules[0])
+    response("game started", room.game.rounds['1']);
   })
 
+  socket.on("imageUpload", ({ roomID, imageData }, response) => {
+    game = rooms[roomID].game
+    players = game.players
+    currentRound = game.rounds['1']
+    currentRound.addImage(imageData)
+    response("image uploaded")
+    
+    if (currentRound.roundImages.length === players.length) {
+      io.in(roomID).emit('submissionsEnd', currentRound.roundImages)
+    }
+  })
+
+socket.on("userVote", ({})=>{
+
+})
   socket.on("leaveRoom", (username) => {
     socket.broadcast.emit("userLeft", `${username} has left the game`);
   });
 
-  socket.on("imageUpload", ({ roomID, imageData }, response) => {
-    const currentRound = '1'
-     console.log(rooms[roomID].game.rounds[currentRound]);
-    rooms[roomID].game.rounds[currentRound].addImage(imageData)
-    response("file uploaded")
-  })
   socket.onAny((event, ...args) => {
-    console.log("Server triggered event:\n", event, args);
+    // console.log("Server triggered event:\n", event, args);
   });
+
   socket.onAnyOutgoing((event, ...args) => {
     // console.log("Server sent an event to client:\n", event, args);
   });
+  
 });
 
 module.exports = { app, httpServer, io };

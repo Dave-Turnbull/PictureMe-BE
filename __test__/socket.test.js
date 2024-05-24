@@ -106,7 +106,7 @@ describe("PictureMe", () => {
         }
       );
     });
-    createdRoomID = response.rooms.roomID
+    createdRoomID = response.rooms.roomID;
     expect(response.message).toBe("room created");
   });
   it("upon joining room, adds user to user array on room object and recieves confirmation string", async () => {
@@ -125,20 +125,41 @@ describe("PictureMe", () => {
       { userID: expect.any(String), username: "user2" },
     ]);
   });
-  it('upon game start the users in the room should be put into the players array, sent round 1 data', async () => {
+  it("upon game start the users in the room should be put into the players array, sent round 1 data", async () => {
     let response = await new Promise((resolve) => {
-      clientSockets[0].emit("startGame", { roomID: createdRoomID }, (res, rooms) => {
-        resolve({res, rooms})
-      })
+      clientSockets[0].emit(
+        "startGame",
+        {roomID: createdRoomID},
+        (res, rooms) => {
+          resolve({ res, rooms });
+        }
+      );
     });
-    expect(response.res).toBe("game started")
-  })
-  it('when imageUpload is triggered, the file received is attached to the player object inside the rounds array to be the value of img ', async () => {
+    expect(response.res).toBe("game started");
+  });
+  it("when imageUpload is triggered, the file received is attached to the player object inside the rounds array to be the value of img ", async () => {
+    let response2 = await new Promise((resolve) => {
+      clientSockets[0].emit(
+        "imageUpload",
+        { roomID: createdRoomID, imageData: { 'user1': { img: "imagedata", votes: 0 } } },
+        (res) => {
+          resolve({ res });
+        }
+      );
+    });
     let response = await new Promise((resolve) => {
-      clientSockets[0].emit("imageUpload", { roomID: createdRoomID, imageData: 'mockImageData' }, (res, rooms) => {
-        resolve({res})
-      })
+      clientSockets[0].emit(
+        "imageUpload",
+        { roomID: createdRoomID, imageData: { 'user2': { img: "imagedata", votes: 0 } } },
+        (res) => {
+          resolve({ res });
+        }
+      );
     });
-    expect(response.res).toBe("file uploaded")
-  })
-})
+    expect(response.res).toBe("image uploaded");
+      clientSockets[0].once("submissionsEnd", (message) => {
+        expect(message).toEqual([{ 'user1': { img: "imagedata", votes: 0 } }, { 'user2': { img: "imagedata", votes: 0 } }]);
+        done();
+      });
+  });
+});
