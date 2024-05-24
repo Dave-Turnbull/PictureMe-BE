@@ -42,3 +42,11 @@ recieved:
 'leaveRoom'
 - input: 'roomID'
 - recieved: 'string'
+
+{
+image1: { 
+    user: {},
+    imgdata: ''
+    votes: Num
+}
+}
