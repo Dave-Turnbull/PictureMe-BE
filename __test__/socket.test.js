@@ -131,7 +131,7 @@ describe("PictureMe", () => {
         {
           roomID: createdRoomID,
           imageData: {
-            userID: "userID",
+            userID: "userID1",
             img: "buffer",
           },
         },
@@ -157,7 +157,7 @@ describe("PictureMe", () => {
         {
           roomID: createdRoomID,
           imageData: {
-            userID: "userID",
+            userID: "userID2",
             img: "buffer",
           },
         },
@@ -181,7 +181,6 @@ describe("PictureMe", () => {
 
     const startVotes = new Promise((resolve) => {
       clientSockets[0].on("startVotes", (message) => {
-        console.log(message);
         resolve(message);
       });
     });
@@ -192,14 +191,13 @@ describe("PictureMe", () => {
       allUsersSubmitted,
       startVotes,
     ]);
-
     expect(resolved).toEqual([
       "image uploaded",
       "user submitted",
       "all submitted",
       {
         img: "buffer",
-        userID: "userID",
+        userID: "userID2",
       },
     ]);
   });

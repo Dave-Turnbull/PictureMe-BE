@@ -94,11 +94,6 @@ io.on("connection", (socket) => {
     io.to(roomID).emit("userVoted");
     if (currentRound.roundImages["1"].votes === players.length) {
       io.to(roomID).emit("votingEnd", votes);
-      // if (imagesVotedOn !== users.length) {
-      //   io.in(roomID).emit("voteStart", imageData);
-      // } else {
-      //   io.in(roomID).emit("roundEnd", votes);
-      // }
     }
   });
 
@@ -107,11 +102,11 @@ io.on("connection", (socket) => {
   });
 
   socket.onAny((event, ...args) => {
-    console.log("Server triggered event:\n", event, args);
+    // console.log("Server triggered event:\n", event, args);
   });
 
   socket.onAnyOutgoing((event, ...args) => {
-    console.log("Server sent an event to client:\n", event, args);
+    // console.log("Server sent an event to client:\n", event, args);
   });
 });
 
