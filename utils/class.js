@@ -38,7 +38,7 @@ class Game {
 class Round {
   constructor(roundRules, players) {
     this.instructions = roundRules;
-    this.players = players
+    this.players = players;
     this.roundImages = [];
     this.currentImage = null;
     this.votedImages = [];
@@ -47,73 +47,78 @@ class Round {
     this.roundImages.push({ ...imgData, votes: 0, score: 0 });
   }
   setCurrentImageToVote() {
-    if (this.roundImages.length === 0) {
-      this.votedImages.push(this.currentImage);
-      this.endRound()
-    } else {
-      const randomIndex = Math.floor(Math.random() * this.roundImages.length);
-      this.currentImage = this.roundImages.splice(randomIndex, 1)[0];
-      return this.currentImage;
-    }
+    const randomIndex = Math.floor(Math.random() * this.roundImages.length);
+    this.currentImage = this.roundImages.splice(randomIndex, 1)[0];
+    return this.currentImage;
   }
   addVote(userID) {
-    if(this.currentImage.votes === this.players.length){
-      this.cycleImageToVote()
+    if (this.currentImage.votes === this.players.length) {
+      this.cycleImageToVote();
     }
     if (this.currentImage.userID === userID) {
       this.currentImage.votes++;
       this.currentImage.score += 500;
-    }else{
-      this.currentImage.votes++
+    } else {
+      this.currentImage.votes++;
     }
   }
-  cycleImageToVote(){
-    if (this.currentImage){
+  cycleImageToVote() {
+    if (this.currentImage) {
       this.votedImages.push(this.currentImage);
-      this.setCurrentImageToVote()
+      this.setCurrentImageToVote();
     }
   }
-  endRound(){
-    console.log("end of round, no more pics")
-
+  endRound() {
+    if (this.currentImage) {
+      this.votedImages.push(this.currentImage);
+      this.currentImage = null;
+      this.votedImages.forEach((image) => {
+        const player = this.players.find(
+          (player) => player.userID === image.userID
+        );
+        if (player) {
+          player.score += image.score;
+        }
+      });
+    }
   }
 }
 
 module.exports = { Room, Game, Round };
 
 // Testing a full game sequence
-const roomExample = new Room(
-  { username: "user1", userID: "userID1" },
-  "mockRoomID"
-);
-roomExample.addUser({ username: "user2", userID: "userID2" });
-roomExample.addUser({ username: "user3", userID: "userID3" });
-roomExample.addUser({ username: "user4", userID: "userID4" });
-roomExample.addGame("round1 string");
-roomExample.game.rounds["1"].addImage({ userID: "userID1", img: "imagedata" });
-roomExample.game.rounds["1"].addImage({ userID: "userID2", img: "imagedata" });
-roomExample.game.rounds["1"].addImage({ userID: "userID3", img: "imagedata" });
-roomExample.game.rounds["1"].addImage({ userID: "userID4", img: "imagedata" });
-console.log(roomExample.game.rounds["1"]);
-roomExample.game.rounds["1"].setCurrentImageToVote();
-console.log(roomExample.game.rounds["1"]);
-roomExample.game.rounds["1"].addVote("userID1");
-roomExample.game.rounds["1"].addVote("userID1")
-roomExample.game.rounds["1"].addVote("userID1");
-roomExample.game.rounds["1"].addVote("userID1");
-roomExample.game.rounds["1"].addVote("userID1")
-roomExample.game.rounds["1"].addVote("userID1");
-roomExample.game.rounds["1"].addVote("userID1")
-roomExample.game.rounds["1"].addVote("userID1");
-roomExample.game.rounds["1"].addVote("userID1");
-roomExample.game.rounds["1"].addVote("userID1")
-roomExample.game.rounds["1"].addVote("userID1");
-roomExample.game.rounds["1"].addVote("userID1")
-roomExample.game.rounds["1"].addVote("userID1");
-roomExample.game.rounds["1"].addVote("userID1");
-roomExample.game.rounds["1"].addVote("userID1")
-roomExample.game.rounds["1"].addVote("userID1")
-console.log(roomExample.game.rounds["1"]);
+// const roomExample = new Room(
+//   { username: "user1", userID: "userID1" },
+//   "mockRoomID"
+// );
+// roomExample.addUser({ username: "user2", userID: "userID2" });
+// roomExample.addUser({ username: "user3", userID: "userID3" });
+// roomExample.addUser({ username: "user4", userID: "userID4" });
+// roomExample.addGame("round1 string");
+// roomExample.game.rounds["1"].addImage({ userID: "userID1", img: "imagedata" });
+// roomExample.game.rounds["1"].addImage({ userID: "userID2", img: "imagedata" });
+// roomExample.game.rounds["1"].addImage({ userID: "userID3", img: "imagedata" });
+// roomExample.game.rounds["1"].addImage({ userID: "userID4", img: "imagedata" });
+// roomExample.game.rounds["1"].setCurrentImageToVote();
+// console.log(roomExample.game.rounds["1"]);
+// roomExample.game.rounds["1"].addVote("userID1");
+// roomExample.game.rounds["1"].addVote("userID2")
+// roomExample.game.rounds["1"].addVote("userID3");
+// roomExample.game.rounds["1"].addVote("userID4");
+// roomExample.game.rounds["1"].addVote("userID1")
+// roomExample.game.rounds["1"].addVote("userID1");
+// roomExample.game.rounds["1"].addVote("userID3")
+// roomExample.game.rounds["1"].addVote("userID3");
+// roomExample.game.rounds["1"].addVote("userID3");
+// roomExample.game.rounds["1"].addVote("userID1")
+// roomExample.game.rounds["1"].addVote("userID1");
+// roomExample.game.rounds["1"].addVote("userID1");
+// roomExample.game.rounds["1"].addVote("userID2")
+// roomExample.game.rounds["1"].addVote("userID2");
+// roomExample.game.rounds["1"].addVote("userID2")
+// roomExample.game.rounds["1"].addVote("userID1");
+// roomExample.game.rounds["1"].endRound()
+// console.log(roomExample.game.rounds["1"]);
 // roomExample.game.updateScore({ userID: "userID2", score: 200 });
 // console.log("roomID", roomExample.roomID);
 // console.log("host", roomExample.host);

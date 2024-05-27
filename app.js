@@ -82,7 +82,7 @@ io.on("connection", (socket) => {
     io.emit("userPictureSubmitted", "user submitted");
 
     if (currentRound.roundImages.length === players.length) {
-      io.emit("submissionsEnd", 'all submitted');
+      io.emit("submissionsEnd", "all submitted");
       io.emit("startVotes", imageData);
     }
   });
