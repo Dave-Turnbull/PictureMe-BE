@@ -21,9 +21,17 @@ class Game {
       return { userID: player.userID, username: player.username, score: 0 };
     });
     this.rounds = {};
+    this.currentRound = 1;
   }
   addRound(roundNumber, rules) {
     this.rounds[roundNumber] = new Round(rules);
+  }
+  updateScore({userID, score}) {
+    this.players.forEach((player) => {
+      if (player.userID === userID) {
+        player.score += score;
+      }
+    });
   }
 }
 
@@ -46,16 +54,25 @@ class Round {
 
 module.exports = { Room, Game, Round };
 
-//Testing a full game sequence
-// const roomExample = new Room({ username: "user1" }, 'mockRoomID');
-// roomExample.addUser({ username: "user2" });
-// roomExample.addGame('round1 string');
+// Testing a full game sequence
+// const roomExample = new Room(
+//   { username: "user1", userID: "userID1" },
+//   "mockRoomID"
+// );
+// roomExample.addUser({ username: "user2", userID: "userID2" });
+// roomExample.addGame("round1 string");
 
-// console.log(roomExample.game.rounds);
+// roomExample.game.rounds["1"].addImage({ userID: 'userID1', img: "imagedata",  });
+// roomExample.game.rounds["1"].addImage({ userID: "userID2", img: "imagedata" });
 
-// roomExample.game.rounds['1'].addImg({ jake: { img: "imagedata", votes: 0 } });
-// roomExample.game.rounds['1'].addImg({ david: { img: "imagedata", votes: 0 } });
+// roomExample.game.rounds[ '1' ].addVote( 'userID1' )
+// roomExample.game.updateScore( { userID: 'userID2', score: 200} )
+// console.log( 'roomID', roomExample.roomID );
+// console.log( 'host', roomExample.host );
+// console.log( 'users', roomExample.users );
+// console.log('current round', roomExample.game.currentRound);
+// console.log( 'players', roomExample.game.players );
+// console.log( 'rounds', roomExample.game.rounds );
+// console.log('round1 images', roomExample.game.rounds['1'].roundImages);
+// console.log(roomExample.game);
 
-// console.log('Whole room obj', roomExample);
-// console.log(roomExample.game.rounds)
-// console.log(roomExample.game.rounds['1'].roundImages)
