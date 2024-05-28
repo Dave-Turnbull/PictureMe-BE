@@ -1,3 +1,5 @@
+const {randomIndex} = require('./utils')
+
 class Room {
   constructor(user, roomID) {
     this.roomID = roomID;
@@ -7,11 +9,11 @@ class Room {
   addUser(user) {
     this.users.push(user);
   }
-  addGame(rules) {
+  addGame(rule) {
     const players = this.users;
     const game = new Game(players);
     this.game = game;
-    game.addRound("1", rules);
+    game.addRound("1", rule);
   }
 }
 
@@ -26,6 +28,9 @@ class Game {
   addRound(roundNumber, rules) {
     this.rounds[roundNumber] = new Round(rules, this.players);
   }
+  nextRound() {
+    this.currentRound++;
+  }
   updateScore({ userID, score }) {
     this.players.forEach((player) => {
       if (player.userID === userID) {
@@ -36,57 +41,50 @@ class Game {
 }
 
 class Round {
-  constructor(roundRules, players) {
+  constructor(roundRules) {
     this.instructions = roundRules;
-    this.players = players;
+    // this.players = players;
     this.roundImages = [];
     this.currentImage = null;
     this.votedImages = [];
   }
   addImage(imgData) {
-    this.roundImages.push({ ...imgData, votes: 0, score: 0 });
+    this.roundImages.push({ ...imgData, votes: 0 });
   }
   setCurrentImageToVote() {
-    const randomIndex = Math.floor(Math.random() * this.roundImages.length);
-    this.currentImage = this.roundImages.splice(randomIndex, 1)[0];
+    this.currentImage = this.roundImages.splice(randomIndex(this.roundImages.length), 1)[0];
     return this.currentImage;
   }
-  addVote(userID) {
-    if (this.currentImage.votes === this.players.length) {
-      this.cycleImageToVote();
-    }
-    if (this.currentImage.userID === userID) {
-      this.currentImage.votes++;
-      this.currentImage.score += 500;
-    } else {
-      this.currentImage.votes++;
-    }
+  addVote() {
+    this.currentImage.votes++;
   }
   cycleImageToVote() {
-    if (this.currentImage) {
+    if (this.roundImages.length !== 0) {
       this.votedImages.push(this.currentImage);
       this.setCurrentImageToVote();
+    } else {
+      this.currentImage = undefined;
     }
   }
   endRound() {
     if (this.currentImage) {
       this.votedImages.push(this.currentImage);
       this.currentImage = null;
-      this.votedImages.forEach((image) => {
-        const player = this.players.find(
-          (player) => player.userID === image.userID
-        );
-        if (player) {
-          player.score += image.score;
-        }
-      });
+      // this.votedImages.forEach((image) => {
+      //   const imageTaker = this.players.find(
+      //     (taker) => taker.userID === image.userID
+      //   );
+      //   if (imageTaker) {
+      //     taker.score += image.score;
+      //   }
+      // });
     }
   }
 }
 
 module.exports = { Room, Game, Round };
 
-// Testing a full game sequence
+//Testing a full game sequence
 // const roomExample = new Room(
 //   { username: "user1", userID: "userID1" },
 //   "mockRoomID"
@@ -105,18 +103,6 @@ module.exports = { Room, Game, Round };
 // roomExample.game.rounds["1"].addVote("userID2")
 // roomExample.game.rounds["1"].addVote("userID3");
 // roomExample.game.rounds["1"].addVote("userID4");
-// roomExample.game.rounds["1"].addVote("userID1")
-// roomExample.game.rounds["1"].addVote("userID1");
-// roomExample.game.rounds["1"].addVote("userID3")
-// roomExample.game.rounds["1"].addVote("userID3");
-// roomExample.game.rounds["1"].addVote("userID3");
-// roomExample.game.rounds["1"].addVote("userID1")
-// roomExample.game.rounds["1"].addVote("userID1");
-// roomExample.game.rounds["1"].addVote("userID1");
-// roomExample.game.rounds["1"].addVote("userID2")
-// roomExample.game.rounds["1"].addVote("userID2");
-// roomExample.game.rounds["1"].addVote("userID2")
-// roomExample.game.rounds["1"].addVote("userID1");
 // roomExample.game.rounds["1"].endRound()
 // console.log(roomExample.game.rounds["1"]);
 // roomExample.game.updateScore({ userID: "userID2", score: 200 });
