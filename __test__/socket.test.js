@@ -50,6 +50,8 @@ function createClientSocket(userID) {
 }
 
 let createdRoomID;
+let userID1;
+let userID2;
 
 describe("PictureMe", () => {
   it("Clients should connect", () => {
@@ -74,8 +76,15 @@ describe("PictureMe", () => {
     });
   });
   it("if user has no existing user ID, recieve one from the server", async () => {
+    await new Promise((resolve) => {
+      clientSockets[0].emit("getUserID", (userID) => {
+        userID1 = userID;
+        resolve(userID);
+      });
+    });
     let receivedUserID = await new Promise((resolve) => {
       clientSockets[1].emit("getUserID", (userID) => {
+        userID2 = userID;
         resolve(userID);
       });
     });
@@ -87,42 +96,37 @@ describe("PictureMe", () => {
       clientSockets[1].emit(
         "createRoom",
         { username: "user1" },
-        (message, rooms) => {
-          resolve({ message, rooms });
+        (message, room) => {
+          resolve({ message, room });
         }
       );
     });
-    createdRoomID = response.rooms.roomID;
+    createdRoomID = response.room.roomID;
     expect(response.message).toBe("room created");
   });
   it("upon joining room, adds user to user array on room object and recieves confirmation string", async () => {
     let response = await new Promise((resolve) => {
-      clientSockets[1].emit(
+      clientSockets[0].emit(
         "joinRoom",
         { user: { username: "user2" }, roomID: createdRoomID },
-        (res, rooms) => {
-          resolve({ res, rooms });
+        (res, room) => {
+          resolve({ res, room });
         }
       );
     });
     expect(response.res).toBe("joined");
-    expect(response.rooms.users).toEqual([
+    expect(response.room.users).toEqual([
       { userID: expect.any(String), username: "user1" },
       { userID: expect.any(String), username: "user2" },
     ]);
   });
   it("upon game start the users in the room should be put into the players array, sent round 1 data", async () => {
     let response = await new Promise((resolve) => {
-      clientSockets[0].emit(
-        "startGame",
-        { roomID: createdRoomID },
-        (res, roundData) => {
-          resolve({ res, roundData });
-        }
-      );
+      clientSockets[0].emit("startGame", (res, roundData) => {
+        resolve({ res, roundData });
+      });
     });
     expect(response.res).toBe("game started");
-    expect(response.roundData).toEqual(expect.any(String));
   });
   it("when imageUpload is triggered, the file received is attached to the player object inside the rounds array to be the value of img, and all other players are notified of the submission", async () => {
     const response = new Promise((resolve) => {
@@ -131,8 +135,8 @@ describe("PictureMe", () => {
         {
           roomID: createdRoomID,
           imageData: {
-            userID: "userID",
-            img: "buffer",
+            userID: userID1,
+            img: "buffer1",
           },
         },
         (res) => {
@@ -155,10 +159,9 @@ describe("PictureMe", () => {
       clientSockets[1].emit(
         "imageUpload",
         {
-          roomID: createdRoomID,
           imageData: {
-            userID: "userID",
-            img: "buffer",
+            userID: userID2,
+            img: "buffer2",
           },
         },
         (res) => {
@@ -173,15 +176,8 @@ describe("PictureMe", () => {
       });
     });
 
-    const allUsersSubmitted = new Promise((resolve) => {
-      clientSockets[0].on("submissionsEnd", (message) => {
-        resolve(message);
-      });
-    });
-
     const startVotes = new Promise((resolve) => {
       clientSockets[0].on("startVotes", (message) => {
-        console.log(message);
         resolve(message);
       });
     });
@@ -189,18 +185,123 @@ describe("PictureMe", () => {
     const resolved = await Promise.all([
       response,
       otherUserSubmittedPictureListener,
-      allUsersSubmitted,
       startVotes,
     ]);
 
     expect(resolved).toEqual([
       "image uploaded",
       "user submitted",
-      "all submitted",
       {
-        img: "buffer",
-        userID: "userID",
+        img: expect.any(String),
+        userID: expect.any(String),
       },
     ]);
+  });
+  it("on userVote event, client gets a message and all users in game are notified", async () => {
+    const user1Voted = new Promise((resolve) => {
+      clientSockets[0].emit(
+        "userVote",
+        {
+          voteData: {
+            userID: userID1,
+            score: 200,
+          },
+          imgUserID: userID2,
+        },
+        (res) => {
+          resolve(res);
+        }
+      );
+    });
+
+    const userVotedEvent = new Promise((resolve) => {
+      clientSockets[1].on("userVoted", (message) => {
+        resolve(message);
+      });
+    });
+
+    const newImageEvent = new Promise((resolve) => {
+      clientSockets[1].on("nextImage", (message) => {
+        resolve(message);
+      });
+    });
+
+    const [voted, votedEvent, imageEvent] = await Promise.all([
+      user1Voted,
+      userVotedEvent,
+      newImageEvent,
+    ]);
+    expect(voted).toBe("vote counted");
+    expect(votedEvent).toBe("user voted");
+    expect(imageEvent).toMatchObject({
+      userID: expect.any(String),
+      img: expect.any(String),
+    });
+  });
+  it("second image is sent to client after image 1 voting ends", async () => {
+    const user2Voted = new Promise((resolve) => {
+      clientSockets[1].emit(
+        "userVote",
+        {
+          roomID: createdRoomID,
+          voteData: {
+            userID: userID2,
+            score: 200,
+          },
+          imgUserID: userID1,
+        },
+        (res) => {
+          resolve(res);
+        }
+      );
+    });
+    const userVotedEvent = new Promise((resolve) => {
+      clientSockets[0].on("userVoted", (message) => {
+        resolve(message);
+      });
+    });
+
+    const endRoundEvent = new Promise((resolve) => {
+      clientSockets[1].on("endRound", (message) => {
+        resolve(message);
+      });
+    });
+
+    const resolved = await Promise.all([
+      user2Voted,
+      userVotedEvent,
+      endRoundEvent,
+    ]);
+
+    expect(resolved).toEqual([
+      "vote counted",
+      "user voted",
+      [
+        {
+          score: expect.any(Number),
+          userID: expect.any(String),
+          username: expect.any(String),
+        },
+        {
+          score: expect.any(Number),
+          userID: expect.any(String),
+          username: expect.any(String),
+        },
+      ],
+    ]);
+  });
+  it("can continue game after a round is finished", async () => {
+    const continueGame = new Promise((resolve) => {
+      clientSockets[0].emit("continueGame", (res) => {
+        resolve(res);
+      });
+    });
+    const startRoundEvent = new Promise((resolve) => {
+      clientSockets[1].on("startRound", (instructions) => {
+        resolve(instructions);
+      });
+    });
+    const resolved = await Promise.all([continueGame, startRoundEvent]);
+    expect(resolved).toEqual(["game continuing", expect.any(String)]);
   });
 });
