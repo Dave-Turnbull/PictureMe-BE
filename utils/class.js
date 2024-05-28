@@ -112,6 +112,4 @@ module.exports = { Room, Game, Round };
 // console.log("current round", roomExample.game.currentRound);
 // console.log("players", roomExample.game.players);
 // console.log("rounds", roomExample.game.rounds);
-// console.log("round1 images", roomExample.game.rounds["1"].roundImages);
 // console.log(roomExample.game);
-// console.log(roomExample.game.rounds["1"].roundImages);
