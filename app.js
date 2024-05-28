@@ -3,7 +3,6 @@ const app = express();
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
-const { sendLandingPage } = require("./controllers/http-controllers");
 const { generateID, randomRule } = require("./utils/utils");
 const { Room } = require("./utils/class.js");
 
@@ -11,7 +10,7 @@ app.use(cors());
 const httpServer = http.createServer(app);
 
 const io = new Server(httpServer);
-app.get("/", sendLandingPage);
+
 
 const rooms = {};
 const userSessions = {};
@@ -123,11 +122,11 @@ io.on("connection", (socket) => {
   });
 
   socket.onAny((event, ...args) => {
-    console.log("Server triggered event:\n", event, args);
+    // console.log("Server triggered event:\n", event, args);
   });
 
   socket.onAnyOutgoing((event, ...args) => {
-    console.log("Server sent an event to client:\n", event, args);
+    // console.log("Server sent an event to client:\n", event, args);
   });
 });
 
