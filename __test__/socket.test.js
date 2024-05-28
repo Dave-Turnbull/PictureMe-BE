@@ -95,7 +95,7 @@ describe("PictureMe", () => {
     let response = await new Promise((resolve) => {
       clientSockets[1].emit(
         "createRoom",
-        { username: "user1" },
+        { userID: userID2, username: "user1" },
         (message, room) => {
           resolve({ message, room });
         }
@@ -108,14 +108,14 @@ describe("PictureMe", () => {
     let response = await new Promise((resolve) => {
       clientSockets[0].emit(
         "joinRoom",
-        { user: { username: "user2" }, roomID: createdRoomID },
-        (res, room) => {
-          resolve({ res, room });
+        { user: { userID: userID1, username: "user2" }, roomID: createdRoomID },
+        (res, users) => {
+          resolve({ res, users });
         }
       );
     });
     expect(response.res).toBe("joined");
-    expect(response.room.users).toEqual([
+    expect(response.users).toEqual([
       { userID: expect.any(String), username: "user1" },
       { userID: expect.any(String), username: "user2" },
     ]);
@@ -133,7 +133,6 @@ describe("PictureMe", () => {
       clientSockets[0].emit(
         "imageUpload",
         {
-          roomID: createdRoomID,
           imageData: {
             userID: userID1,
             img: "buffer1",
@@ -303,5 +302,26 @@ describe("PictureMe", () => {
     });
     const resolved = await Promise.all([continueGame, startRoundEvent]);
     expect(resolved).toEqual(["game continuing", expect.any(String)]);
+  });
+  it("can end a game which sends all players the leaderboard", async () => {
+    const endGame = new Promise((resolve) => {
+      clientSockets[0].emit("endGame", (res) => {
+        resolve(res);
+      });
+    });
+    const gameEnded = new Promise((resolve) => {
+      clientSockets[1].on("finished", (res) => {
+        resolve(res);
+      });
+    });
+    const [host, endingGame] = await Promise.all([endGame, gameEnded]);
+    expect(host).toEqual("thanks for playing!");
+    expect(endingGame).toEqual(
+      expect.objectContaining({
+        currentRound: expect.any(Number),
+        players: expect.any(Object),
+        rounds: expect.any(Object),
+      })
+    );
   });
 });

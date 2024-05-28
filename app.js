@@ -3,7 +3,6 @@ const app = express();
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
-const { sendLandingPage } = require("./controllers/http-controllers");
 const { generateID, randomRule } = require("./utils/utils");
 const { Room } = require("./utils/class.js");
 
@@ -11,7 +10,7 @@ app.use(cors());
 const httpServer = http.createServer(app);
 
 const io = new Server(httpServer);
-app.get("/", sendLandingPage);
+
 
 const rooms = {};
 const userSessions = {};
@@ -35,43 +34,43 @@ io.on("connection", (socket) => {
   let currentRound;
   let totalImgVotes;
 
-  socket.on("getUserID", (callbackfunc) => {
-    callbackfunc(socket.userID);
+  socket.on("getUserID", (res) => {
+    res(socket.userID);
   });
 
-  socket.on("createRoom", (user, response) => {
+  socket.on("createRoom", (user, res) => {
     const userObj = { userID: socket.userID, username: user.username };
     roomID = generateID();
     socket.join(roomID);
     rooms[roomID] = new Room(userObj, roomID);
     room = rooms[roomID];
-    response("room created", rooms[roomID]);
+    res("room created", rooms[roomID]);
   });
 
-  socket.on("joinRoom", (data, response) => {
+  socket.on("joinRoom", (data, res) => {
     let user = data.user;
     roomID = data.roomID;
     room = rooms[roomID];
     const userObj = { userID: socket.userID, username: user.username };
     room.addUser(userObj);
     io.in(roomID).emit("updateUsersArray", room.users);
-    response("joined", room);
+    res("joined", room.users);
   });
 
-  socket.on("startGame", (response) => {
+  socket.on("startGame", (res) => {
     room.addGame(randomRule());
     currentRound = String(room.game.currentRound);
-    response("game started");
+    res("game started");
     io.emit("startRound", room.game.rounds[currentRound].instructions);
   });
 
-  socket.on("imageUpload", ({ imageData }, response) => {
+  socket.on("imageUpload", ({ imageData }, res) => {
     room = rooms[roomID];
     game = room.game;
     players = game.players;
     currentRound = game.currentRound;
     game.rounds[currentRound].addImage(imageData);
-    response("image uploaded");
+    res("image uploaded");
 
     io.emit("userPictureSubmitted", "user submitted");
 
@@ -84,12 +83,12 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("userVote", ({ voteData, imgUserID }, response) => {
+  socket.on("userVote", ({ voteData, imgUserID }, res) => {
     currentRound = game.currentRound;
     game.rounds[currentRound].addVote(imgUserID);
     game.updateScore(voteData);
     io.emit("userVoted", "user voted");
-    response("vote counted");
+    res("vote counted");
 
     players = game.players;
     totalImgVotes = game.rounds[currentRound].currentImage.votes;
@@ -105,15 +104,16 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("continueGame", (response) => {
-    response("game continuing");
+  socket.on("continueGame", (res) => {
+    res("game continuing");
     game.nextRound();
     currentRound = game.currentRound;
     game.addRound(currentRound, randomRule());
     io.emit("startRound", game.rounds[currentRound].instructions);
   });
 
-  socket.on("endGame", () => {
+  socket.on("endGame", (res) => {
+    res("thanks for playing!");
     io.emit("finished", game);
   });
 
@@ -122,11 +122,11 @@ io.on("connection", (socket) => {
   });
 
   socket.onAny((event, ...args) => {
-    console.log("Server triggered event:\n", event, args);
+    // console.log("Server triggered event:\n", event, args);
   });
 
   socket.onAnyOutgoing((event, ...args) => {
-    console.log("Server sent an event to client:\n", event, args);
+    // console.log("Server sent an event to client:\n", event, args);
   });
 });
 
