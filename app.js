@@ -55,6 +55,7 @@ io.on("connection", (socket) => {
     roomID = data.roomID;
     room = rooms[roomID];
     const userObj = { userID: socket.userID, username: user.username };
+    console.log(room);
     room.addUser(userObj);
     io.in(roomID).emit("updateUsersArray", room);
     res("joined", room);
