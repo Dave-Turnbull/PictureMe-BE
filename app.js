@@ -20,7 +20,7 @@ const io = new Server( httpServer );
 const rooms = {};
 const userSessions = {};
 
-io.on( "connection", ( socket, res ) =>
+io.on( "connect", ( socket, res ) =>
 {
   res('connected')
   let userID = socket.handshake.auth.userID;
