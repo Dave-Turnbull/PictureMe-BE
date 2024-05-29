@@ -117,7 +117,8 @@ io.on( "connection", ( socket) =>
   });
 
   socket.on("endGame", (res) => {
-    res("thanks for playing!");
+    res( "thanks for playing!" );
+    delete rooms[roomID]
     io.emit("finished", game);
   });
 
