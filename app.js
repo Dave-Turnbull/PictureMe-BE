@@ -8,17 +8,17 @@ const { Room } = require("./utils/class.js");
 
 app.use(cors());
 
-
 const httpServer = http.createServer(app);
-const io = new Server( httpServer, { cors: { origin: '*', methods: ['GET', 'POST']}} );
+const io = new Server(httpServer, {
+  cors: { origin: "*", methods: ["GET", "POST"] },
+});
 
 const rooms = {};
 const userSessions = {};
 
-io.on( "connection", ( socket) =>
-{
-  socket.emit( "connected", "You are now connected to the server" );
-  
+io.on("connection", (socket) => {
+  socket.emit("connected", "You are now connected to the server");
+
   let userID = socket.handshake.auth.userID;
 
   if (userID && userSessions[userID]) {
@@ -42,7 +42,6 @@ io.on( "connection", ( socket) =>
   });
 
   socket.on("createRoom", (user, res) => {
-    
     const userObj = { userID: socket.userID, username: user.username };
     roomID = generateID();
     socket.join(roomID);
@@ -61,9 +60,8 @@ io.on( "connection", ( socket) =>
     res("joined", room);
   });
 
-  socket.on( "startGame", ( res ) =>
-  {
-    res('game started')
+  socket.on("startGame", (res) => {
+    res("game started");
     room.addGame(randomRule());
     currentRound = String(room.game.currentRound);
     io.emit("startRound", room.game.rounds[currentRound].instructions);
@@ -118,8 +116,8 @@ io.on( "connection", ( socket) =>
   });
 
   socket.on("endGame", (res) => {
-    res( "thanks for playing!" );
-    delete rooms[roomID]
+    res("thanks for playing!");
+    delete rooms[roomID];
     io.emit("finished", game);
   });
 
@@ -127,13 +125,13 @@ io.on( "connection", ( socket) =>
     socket.broadcast.emit("userLeft", `${username} has left the game`);
   });
 
-  // socket.onAny((event, ...args) => {
-  //   console.log("Server triggered event:\n", event, args);
-  // });
+  socket.onAny((event, ...args) => {
+    console.log("Server triggered event:\n", event, args);
+  });
 
-  // socket.onAnyOutgoing((event, ...args) => {
-  //   console.log("Server sent an event to client:\n", event, args);
-  // });
+  socket.onAnyOutgoing((event, ...args) => {
+    console.log("Server sent an event to client:\n", event, args);
+  });
 });
 
 module.exports = { app, httpServer, io };
