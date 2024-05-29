@@ -19,7 +19,6 @@ io.on( "connection", ( socket) =>
 {
   socket.emit( "connected", "You are now connected to the server" );
   
-  res('connected')
   let userID = socket.handshake.auth.userID;
 
   if (userID && userSessions[userID]) {
