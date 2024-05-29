@@ -84,7 +84,7 @@ io.on("connection", (socket) => {
     io.emit("startRound", room.game.rounds[currentRound].instructions);
   });
 
-  socket.on("imageUpload", ({ imageData }, res) => {
+  socket.on("imageUpload", (imageData, res) => {
     room = rooms[roomID];
     game = room.game;
     players = game.players;
