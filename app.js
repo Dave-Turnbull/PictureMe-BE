@@ -38,7 +38,11 @@ io.on("connection", (socket) => {
   let totalImgVotes;
 
   socket.on("getUserID", (res) => {
-    res(socket.userID);
+    if (res) {
+      res(socket.userID);
+    } else {
+      console.warn("callback not sent");
+    }
   });
 
   socket.on("createRoom", (user, res) => {
@@ -47,7 +51,11 @@ io.on("connection", (socket) => {
     socket.join(roomID);
     rooms[roomID] = new Room(userObj, roomID);
     room = rooms[roomID];
-    res("room created", rooms[roomID]);
+    if (res) {
+      res("room created", rooms[roomID]);
+    } else {
+      console.warn("callback not sent");
+    }
   });
 
   socket.on("joinRoom", (data, res) => {
@@ -58,11 +66,19 @@ io.on("connection", (socket) => {
     console.log(room);
     room.addUser(userObj);
     io.in(roomID).emit("updateUsersArray", room);
-    res("joined", room);
+    if (res) {
+      res("joined", room);
+    } else {
+      console.warn("callback not sent");
+    }
   });
 
   socket.on("startGame", (res) => {
-    res("game started");
+    if (res) {
+      res("game started");
+    } else {
+      console.warn("callback not sent");
+    }
     room.addGame(randomRule());
     currentRound = String(room.game.currentRound);
     io.emit("startRound", room.game.rounds[currentRound].instructions);
@@ -74,7 +90,11 @@ io.on("connection", (socket) => {
     players = game.players;
     currentRound = game.currentRound;
     game.rounds[currentRound].addImage(imageData);
-    res("image uploaded");
+    if (res) {
+      res("image uploaded");
+    } else {
+      console.warn("callback not sent");
+    }
 
     io.emit("userPictureSubmitted", "user submitted");
 
@@ -92,7 +112,11 @@ io.on("connection", (socket) => {
     game.rounds[currentRound].addVote(imgUserID);
     game.updateScore(voteData);
     io.emit("userVoted", "user voted");
-    res("vote counted");
+    if (res) {
+      res("vote counted");
+    } else {
+      console.warn("callback not sent");
+    }
 
     players = game.players;
     totalImgVotes = game.rounds[currentRound].currentImage.votes;
@@ -109,7 +133,11 @@ io.on("connection", (socket) => {
   });
 
   socket.on("continueGame", (res) => {
-    res("game continuing");
+    if (res) {
+      res("game continuing");
+    } else {
+      console.warn("callback not sent");
+    }
     game.nextRound();
     currentRound = game.currentRound;
     game.addRound(currentRound, randomRule());
@@ -117,7 +145,11 @@ io.on("connection", (socket) => {
   });
 
   socket.on("endGame", (res) => {
-    res("thanks for playing!");
+    if (res) {
+      res("thanks for playing!");
+    } else {
+      console.warn("callback not sent");
+    }
     delete rooms[roomID];
     io.emit("finished", game);
   });

@@ -127,13 +127,30 @@ describe("PictureMe", () => {
         resolve(res);
       });
     });
-    const gameStarted = new Promise((resolve) => {
+
+    const gameStartedPromise1 = new Promise((resolve) => {
+      clientSockets[0].on("startRound", (message) => {
+        resolve(message);
+      });
+    });
+
+    const gameStartedPromise2 = new Promise((resolve) => {
       clientSockets[1].on("startRound", (message) => {
         resolve(message);
       });
     });
-    const resolved = await Promise.all([response, gameStarted]);
-    expect(resolved).toEqual(["game started", expect.any(String)]);
+
+    const resolved = await Promise.all([
+      response,
+      gameStartedPromise1,
+      gameStartedPromise2,
+    ]);
+
+    expect(resolved).toEqual([
+      "game started",
+      expect.any(String),
+      expect.any(String),
+    ]);
   });
   it("when imageUpload is triggered, the file received is attached to the player object inside the rounds array to be the value of img, and all other players are notified of the submission", async () => {
     const response = new Promise((resolve) => {
