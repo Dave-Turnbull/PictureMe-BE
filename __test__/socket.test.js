@@ -115,10 +115,7 @@ describe("PictureMe", () => {
       );
     });
     expect(response.res).toBe("joined");
-    expect(response.users).toEqual([
-      { userID: expect.any(String), username: "user1" },
-      { userID: expect.any(String), username: "user2" },
-    ]);
+    expect(response.users).toEqual({"host": {"userID": expect.any(String), "username": "user1"}, "roomID": expect.any(String), "users": [{"userID": expect.any(String), "username": "user1"}, {"userID": expect.any(String), "username": "user2"}]});
   });
   it("upon game start the users in the room should be put into the players array, sent round 1 data", async () => {
     let response = await new Promise((resolve) => {
