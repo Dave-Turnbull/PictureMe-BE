@@ -15,8 +15,10 @@ const io = new Server( httpServer );
 const rooms = {};
 const userSessions = {};
 
-io.on( "connection", ( socket, res ) =>
+io.on( "connection", ( socket) =>
 {
+  socket.emit( "connected", "You are now connected to the server" );
+  
   res('connected')
   let userID = socket.handshake.auth.userID;
 
