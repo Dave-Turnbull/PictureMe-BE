@@ -20,7 +20,9 @@ const io = new Server( httpServer );
 const rooms = {};
 const userSessions = {};
 
-io.on("connection", (socket) => {
+io.on( "connection", ( socket, res ) =>
+{
+  res('connected')
   let userID = socket.handshake.auth.userID;
 
   if (userID && userSessions[userID]) {
@@ -44,6 +46,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("createRoom", (user, res) => {
+    
     const userObj = { userID: socket.userID, username: user.username };
     roomID = generateID();
     socket.join(roomID);
