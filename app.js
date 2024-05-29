@@ -9,18 +9,13 @@ const { Room } = require("./utils/class.js");
 app.use(cors());
 
 
-app.get( '/', ( req, res ) =>
-{
-  res.status(200).send()
-})
-
 const httpServer = http.createServer(app);
 const io = new Server( httpServer );
 
 const rooms = {};
 const userSessions = {};
 
-io.on( "connect", ( socket, res ) =>
+io.on( "connection", ( socket, res ) =>
 {
   res('connected')
   let userID = socket.handshake.auth.userID;
