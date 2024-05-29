@@ -10,7 +10,7 @@ app.use(cors());
 
 
 const httpServer = http.createServer(app);
-const io = new Server( httpServer );
+const io = new Server( httpServer, { cors: { origin: '*', methods: ['GET', 'POST']}} );
 
 const rooms = {};
 const userSessions = {};
