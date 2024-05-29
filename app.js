@@ -9,6 +9,11 @@ const { Room } = require("./utils/class.js");
 app.use(cors());
 
 
+app.get( '/', ( req, res ) =>
+{
+  res.status(200).send()
+})
+
 const httpServer = http.createServer(app);
 const io = new Server( httpServer );
 
