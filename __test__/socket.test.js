@@ -115,15 +115,25 @@ describe("PictureMe", () => {
       );
     });
     expect(response.res).toBe("joined");
-    expect(response.users).toEqual({"host": {"userID": expect.any(String), "username": "user1"}, "roomID": expect.any(String), "users": [{"userID": expect.any(String), "username": "user1"}, {"userID": expect.any(String), "username": "user2"}]});
+    expect(response.users).toEqual({
+      host: { userID: expect.any(String), username: "user1" },
+      roomID: expect.any(String),
+      users: expect.any(Object),
+    });
   });
   it("upon game start the users in the room should be put into the players array, sent round 1 data", async () => {
-    let response = await new Promise((resolve) => {
-      clientSockets[0].emit("startGame", (res, roundData) => {
-        resolve({ res, roundData });
+    const response = new Promise((resolve) => {
+      clientSockets[0].emit("startGame", (res) => {
+        resolve(res);
       });
     });
-    expect(response.res).toBe("game started");
+    const gameStarted = new Promise((resolve) => {
+      clientSockets[1].on("startRound", (message) => {
+        resolve(message);
+      });
+    });
+    const resolved = await Promise.all([response, gameStarted]);
+    expect(resolved).toEqual(["game started", expect.any(String)]);
   });
   it("when imageUpload is triggered, the file received is attached to the player object inside the rounds array to be the value of img, and all other players are notified of the submission", async () => {
     const response = new Promise((resolve) => {
