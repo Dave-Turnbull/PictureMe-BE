@@ -160,13 +160,13 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("userLeft", `${username} has left the game`);
   });
 
-  // socket.onAny((event, ...args) => {
-  //   console.log("Server triggered event:\n", event, args);
-  // });
+  socket.onAny((event, ...args) => {
+    console.log("Server triggered event:\n", event, args);
+  });
 
-  // socket.onAnyOutgoing((event, ...args) => {
-  //   console.log("Server sent an event to client:\n", event, args);
-  // });
+  socket.onAnyOutgoing((event, ...args) => {
+    console.log("Server sent an event to client:\n", event, args);
+  });
 });
 
 module.exports = { app, httpServer, io };
