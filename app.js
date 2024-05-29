@@ -84,7 +84,8 @@ io.on("connection", (socket) => {
     io.emit("startRound", room.game.rounds[currentRound].instructions);
   });
 
-  socket.on("imageUpload", (imageData, res) => {
+  socket.on("imageUpload", ( imageData , res) => {
+    console.log(imageData, "image recieved");
     room = rooms[roomID];
     game = room.game;
     players = game.players;
@@ -124,6 +125,7 @@ io.on("connection", (socket) => {
     if (players.length - 1 === totalImgVotes) {
       game.rounds[currentRound].cycleImageToVote();
       if (game.rounds[currentRound].currentImage) {
+        console.log(game.rounds[currentRound].currentImage);
         io.emit("nextImage", game.rounds[currentRound].currentImage);
       } else {
         io.emit("endRound", game.players);
@@ -158,13 +160,13 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("userLeft", `${username} has left the game`);
   });
 
-  socket.onAny((event, ...args) => {
-    console.log("Server triggered event:\n", event, args);
-  });
+  // socket.onAny((event, ...args) => {
+  //   console.log("Server triggered event:\n", event, args);
+  // });
 
-  socket.onAnyOutgoing((event, ...args) => {
-    console.log("Server sent an event to client:\n", event, args);
-  });
+  // socket.onAnyOutgoing((event, ...args) => {
+  //   console.log("Server sent an event to client:\n", event, args);
+  // });
 });
 
 module.exports = { app, httpServer, io };

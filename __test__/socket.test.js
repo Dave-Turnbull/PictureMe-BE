@@ -157,11 +157,9 @@ describe("PictureMe", () => {
       clientSockets[0].emit(
         "imageUpload",
         {
-          imageData: {
             userID: userID1,
             img: "buffer1",
           },
-        },
         (res) => {
           resolve(res);
         }
@@ -182,10 +180,8 @@ describe("PictureMe", () => {
       clientSockets[1].emit(
         "imageUpload",
         {
-          imageData: {
-            userID: userID2,
-            img: "buffer2",
-          },
+          userID: userID2,
+          img: "buffer2",
         },
         (res) => {
           resolve(res);
