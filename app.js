@@ -61,10 +61,9 @@ io.on( "connection", ( socket) =>
     res("joined", room);
   });
 
-  socket.on("startGame", (res) => {
+  socket.on("startGame", () => {
     room.addGame(randomRule());
     currentRound = String(room.game.currentRound);
-    res("game started");
     io.emit("startRound", room.game.rounds[currentRound].instructions);
   });
 
