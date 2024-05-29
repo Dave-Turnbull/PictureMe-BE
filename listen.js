@@ -1,4 +1,4 @@
-const app = require('./app.js')
-const PORT = 3000
+const {httpServer} = require('./app.js');
+const PORT = 8080;
 
-app.listen(PORT, () => console.log(`Listening on ${PORT}...`));
+httpServer.listen(PORT, () => console.log(`Listening on ${PORT}...`));

@@ -7,10 +7,10 @@ const { generateID, randomRule } = require("./utils/utils");
 const { Room } = require("./utils/class.js");
 
 app.use(cors());
+
+
 const httpServer = http.createServer(app);
-
-const io = new Server(httpServer);
-
+const io = new Server( httpServer );
 
 const rooms = {};
 const userSessions = {};
