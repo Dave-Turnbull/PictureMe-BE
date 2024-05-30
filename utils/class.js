@@ -1,4 +1,4 @@
-const {randomIndex} = require('./utils')
+const { randomIndex } = require("./utils");
 
 class Room {
   constructor(user, roomID) {
@@ -52,23 +52,25 @@ class Round {
     this.roundImages.push({ ...imgData, votes: 0 });
   }
   setCurrentImageToVote() {
-    this.currentImage = this.roundImages.splice(randomIndex(this.roundImages.length), 1)[0];
+    this.currentImage = this.roundImages.splice(
+      randomIndex(this.roundImages.length),
+      1
+    )[0];
     return this.currentImage;
   }
   addVote() {
     this.currentImage.votes++;
   }
-setCurrentImageToVote() {
-  if (this.roundImages.length === 0) {
-    return null;
-  }
-  
-  const randomIndex = Math.floor(Math.random() * this.roundImages.length);
-  this.currentImage = this.roundImages.splice(randomIndex, 1)[0];
-  return this.currentImage;
-}
+  setCurrentImageToVote() {
+    if (this.roundImages.length === 0) {
+      return null;
+    }
 
+    const randomIndex = Math.floor(Math.random() * this.roundImages.length);
+    this.currentImage = this.roundImages.splice(randomIndex, 1)[0];
+    return this.currentImage;
   }
+
   endRound() {
     if (this.currentImage) {
       this.votedImages.push(this.currentImage);
