@@ -52,16 +52,6 @@ class Round {
     this.roundImages.push({ ...imgData, votes: 0 });
   }
   setCurrentImageToVote() {
-    this.currentImage = this.roundImages.splice(
-      randomIndex(this.roundImages.length),
-      1
-    )[0];
-    return this.currentImage;
-  }
-  addVote() {
-    this.currentImage.votes++;
-  }
-  setCurrentImageToVote() {
     if (this.roundImages.length === 0) {
       return null;
     }
@@ -71,6 +61,17 @@ class Round {
     return this.currentImage;
   }
 
+  addVote() {
+    this.currentImage.votes++;
+  }
+  cycleImageToVote() {
+    if (this.roundImages.length !== 0) {
+      this.votedImages.push(this.currentImage);
+      this.setCurrentImageToVote();
+    } else {
+      this.currentImage = undefined;
+    }
+  }
   endRound() {
     if (this.currentImage) {
       this.votedImages.push(this.currentImage);
