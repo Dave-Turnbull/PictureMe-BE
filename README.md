@@ -57,7 +57,7 @@ Everyone is emitted 'startRound', sends instruction string for users like ... 's
 
 'imageUpload'
 
-- Server takes: { imageData: { userID:'userID', img: "imagedata"} }
+- Server takes: { userID:'userID', img: "imagedata"}
 - Server sends: 'image uploaded'
 
 Everyone is emitted 'userPictureSubmitted', sends 'user submitted'

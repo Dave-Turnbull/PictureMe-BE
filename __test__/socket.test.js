@@ -88,7 +88,7 @@ describe("PictureMe", () => {
         resolve(userID);
       });
     });
-    clientSockets[1].auth.userID = receivedUserID;
+    clientSockets[ 1 ].auth.userID = receivedUserID;
     expect(idRegex.test(receivedUserID)).toBeTruthy();
   });
   it("a room can be created, client recieves ID of room", async () => {

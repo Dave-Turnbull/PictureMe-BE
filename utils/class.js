@@ -58,13 +58,16 @@ class Round {
   addVote() {
     this.currentImage.votes++;
   }
-  cycleImageToVote() {
-    if (this.roundImages.length !== 0) {
-      this.votedImages.push(this.currentImage);
-      this.setCurrentImageToVote();
-    } else {
-      this.currentImage = undefined;
-    }
+setCurrentImageToVote() {
+  if (this.roundImages.length === 0) {
+    return null;
+  }
+  
+  const randomIndex = Math.floor(Math.random() * this.roundImages.length);
+  this.currentImage = this.roundImages.splice(randomIndex, 1)[0];
+  return this.currentImage;
+}
+
   }
   endRound() {
     if (this.currentImage) {
