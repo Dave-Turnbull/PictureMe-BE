@@ -124,7 +124,7 @@ io.on("connection", (socket) => {
     players = game.players;
     totalImgVotes = game.rounds[currentRound].currentImage.votes;
 
-    if (players.length - 1 === totalImgVotes) {
+    if (players.length === totalImgVotes) {
       game.rounds[currentRound].cycleImageToVote();
       if (game.rounds[currentRound].currentImage) {
         io.emit("nextImage", game.rounds[currentRound].currentImage);
