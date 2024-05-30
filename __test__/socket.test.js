@@ -88,7 +88,7 @@ describe("PictureMe", () => {
         resolve(userID);
       });
     });
-    clientSockets[ 1 ].auth.userID = receivedUserID;
+    clientSockets[1].auth.userID = receivedUserID;
     expect(idRegex.test(receivedUserID)).toBeTruthy();
   });
   it("a room can be created, client recieves ID of room", async () => {
@@ -157,9 +157,9 @@ describe("PictureMe", () => {
       clientSockets[0].emit(
         "imageUpload",
         {
-            userID: userID1,
-            img: "buffer1",
-          },
+          userID: userID1,
+          img: "buffer1",
+        },
         (res) => {
           resolve(res);
         }
@@ -232,6 +232,21 @@ describe("PictureMe", () => {
         }
       );
     });
+    const user2Voted = new Promise((resolve) => {
+      clientSockets[1].emit(
+        "userVote",
+        {
+          voteData: {
+            userID: userID2,
+            score: 200,
+          },
+          imgUserID: userID2,
+        },
+        (res) => {
+          resolve(res);
+        }
+      );
+    });
 
     const userVotedEvent = new Promise((resolve) => {
       clientSockets[1].on("userVoted", (message) => {
@@ -245,12 +260,14 @@ describe("PictureMe", () => {
       });
     });
 
-    const [voted, votedEvent, imageEvent] = await Promise.all([
+    const [voted, userVoted, votedEvent, imageEvent] = await Promise.all([
       user1Voted,
+      user2Voted,
       userVotedEvent,
       newImageEvent,
     ]);
     expect(voted).toBe("vote counted");
+    expect(userVoted).toBe("vote counted");
     expect(votedEvent).toBe("user voted");
     expect(imageEvent).toMatchObject({
       userID: expect.any(String),
@@ -274,6 +291,22 @@ describe("PictureMe", () => {
         }
       );
     });
+    const user1Voted = new Promise((resolve) => {
+      clientSockets[0].emit(
+        "userVote",
+        {
+          roomID: createdRoomID,
+          voteData: {
+            userID: userID1,
+            score: 200,
+          },
+          imgUserID: userID1,
+        },
+        (res) => {
+          resolve(res);
+        }
+      );
+    });
     const userVotedEvent = new Promise((resolve) => {
       clientSockets[0].on("userVoted", (message) => {
         resolve(message);
@@ -288,11 +321,13 @@ describe("PictureMe", () => {
 
     const resolved = await Promise.all([
       user2Voted,
+      user1Voted,
       userVotedEvent,
       endRoundEvent,
     ]);
 
     expect(resolved).toEqual([
+      "vote counted",
       "vote counted",
       "user voted",
       [

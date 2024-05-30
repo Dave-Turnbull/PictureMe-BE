@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1717074248449" clover="3.2.0">
-  <project timestamp="1717074248449" name="All files">
-    <metrics statements="148" coveredstatements="133" conditionals="34" coveredconditionals="21" methods="31" coveredmethods="29" elements="213" coveredelements="183" complexity="0" loc="148" ncloc="148" packages="2" files="3" classes="3"/>
+<coverage generated="1717076528765" clover="3.2.0">
+  <project timestamp="1717076528765" name="All files">
+    <metrics statements="148" coveredstatements="133" conditionals="34" coveredconditionals="22" methods="31" coveredmethods="29" elements="213" coveredelements="184" complexity="0" loc="148" ncloc="148" packages="2" files="3" classes="3"/>
     <package name="PictureMe-BE">
-      <metrics statements="103" coveredstatements="91" conditionals="26" coveredconditionals="15" methods="13" coveredmethods="11"/>
+      <metrics statements="103" coveredstatements="91" conditionals="26" coveredconditionals="16" methods="13" coveredmethods="11"/>
       <file name="app.js" path="/home/jxffxjxke/northcoders/projects/PictureMe-BE/app.js">
-        <metrics statements="103" coveredstatements="91" conditionals="26" coveredconditionals="15" methods="13" coveredmethods="11"/>
+        <metrics statements="103" coveredstatements="91" conditionals="26" coveredconditionals="16" methods="13" coveredmethods="11"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
         <line num="3" count="1" type="stmt"/>
@@ -73,16 +73,16 @@
         <line num="105" count="1" type="stmt"/>
         <line num="106" count="1" type="stmt"/>
         <line num="113" count="2" type="stmt"/>
-        <line num="114" count="2" type="stmt"/>
-        <line num="115" count="2" type="stmt"/>
-        <line num="116" count="2" type="stmt"/>
-        <line num="117" count="2" type="stmt"/>
-        <line num="118" count="2" type="cond" truecount="1" falsecount="1"/>
-        <line num="119" count="2" type="stmt"/>
+        <line num="114" count="4" type="stmt"/>
+        <line num="115" count="4" type="stmt"/>
+        <line num="116" count="4" type="stmt"/>
+        <line num="117" count="4" type="stmt"/>
+        <line num="118" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="119" count="4" type="stmt"/>
         <line num="121" count="0" type="stmt"/>
-        <line num="124" count="2" type="stmt"/>
-        <line num="125" count="2" type="stmt"/>
-        <line num="127" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="124" count="4" type="stmt"/>
+        <line num="125" count="4" type="stmt"/>
+        <line num="127" count="4" type="cond" truecount="2" falsecount="0"/>
         <line num="128" count="2" type="stmt"/>
         <line num="129" count="2" type="cond" truecount="2" falsecount="0"/>
         <line num="130" count="1" type="stmt"/>
@@ -105,9 +105,9 @@
         <line num="160" count="2" type="stmt"/>
         <line num="161" count="0" type="stmt"/>
         <line num="164" count="2" type="stmt"/>
-        <line num="165" count="11" type="stmt"/>
+        <line num="165" count="13" type="stmt"/>
         <line num="168" count="2" type="stmt"/>
-        <line num="169" count="21" type="stmt"/>
+        <line num="169" count="25" type="stmt"/>
         <line num="173" count="1" type="stmt"/>
       </file>
     </package>
@@ -130,9 +130,9 @@
         <line num="26" count="1" type="stmt"/>
         <line num="29" count="2" type="stmt"/>
         <line num="32" count="1" type="stmt"/>
-        <line num="35" count="2" type="stmt"/>
-        <line num="36" count="4" type="cond" truecount="2" falsecount="0"/>
-        <line num="37" count="2" type="stmt"/>
+        <line num="35" count="4" type="stmt"/>
+        <line num="36" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="37" count="4" type="stmt"/>
         <line num="45" count="2" type="stmt"/>
         <line num="47" count="2" type="stmt"/>
         <line num="48" count="2" type="stmt"/>
@@ -143,7 +143,7 @@
         <line num="59" count="2" type="stmt"/>
         <line num="60" count="2" type="stmt"/>
         <line num="61" count="2" type="stmt"/>
-        <line num="65" count="2" type="stmt"/>
+        <line num="65" count="4" type="stmt"/>
         <line num="68" count="2" type="cond" truecount="2" falsecount="0"/>
         <line num="69" count="1" type="stmt"/>
         <line num="70" count="1" type="stmt"/>
