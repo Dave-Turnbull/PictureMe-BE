@@ -58,6 +58,10 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("getRoom", (roomID, res) => {
+    res(rooms[roomID]);
+  });
+
   socket.on("joinRoom", (data, res) => {
     let user = data.user;
     roomID = data.roomID;
@@ -83,7 +87,7 @@ io.on("connection", (socket) => {
     io.emit("startRound", room.game.rounds[currentRound].instructions);
   });
 
-  socket.on("imageUpload", ( imageData , res) => {
+  socket.on("imageUpload", (imageData, res) => {
     room = rooms[roomID];
     game = room.game;
     players = game.players;
@@ -157,13 +161,13 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("userLeft", `${username} has left the game`);
   });
 
-  // socket.onAny((event, ...args) => {
-  //   console.log("Server triggered event:\n", event, args);
-  // });
+  socket.onAny((event, ...args) => {
+    console.log("Server triggered event:\n", event, args);
+  });
 
-  // socket.onAnyOutgoing((event, ...args) => {
-  //   console.log("Server sent an event to client:\n", event, args);
-  // });
+  socket.onAnyOutgoing((event, ...args) => {
+    console.log("Server sent an event to client:\n", event, args);
+  });
 });
 
 module.exports = { app, httpServer, io };
