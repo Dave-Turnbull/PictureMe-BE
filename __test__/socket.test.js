@@ -1,5 +1,5 @@
 const ioc = require("socket.io-client");
-const { httpServer, io } = require("../server.js");
+const { httpServer, io } = require("../app.js");
 
 const idRegex = /^[\w_\-]{9,10}$/i;
 
@@ -396,5 +396,4 @@ describe("PictureMe", () => {
       "game ended",
     ]);
   });
-
 });
