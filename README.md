@@ -72,12 +72,3 @@ Everyone is emitted 'userVoted', sends 'user voted'
 If all players voted then listen for 'nextImage'. sends {img: 'buffer', userID: 'imgTakerID'}
 If all all images have been voted on listen for 'endRound'. sends [ { userID: 'userID', username: 'user1', score: 0 }, { userID: 'userID', username: 'user2', score: 0 } ] for leaderboard
 
-'continueGame'
-
-- Server takes:
-- Server sends: "game continuing" triggers "newRound"
-
-'endGame'
-
--Server takes:
--Server sends: (to host)"thanks for playing!" (to everyone){ Game Data }

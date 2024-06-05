@@ -3,8 +3,9 @@ const app = express();
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
-const { generateID, randomRule } = require("./utils/utils");
+const { generateID, randomRule } = require("./utils/utils.js");
 const { Room } = require("./utils/class.js");
+const { escape } = require("querystring");
 
 app.use(cors());
 
@@ -135,39 +136,63 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("continueGame", (res) => {
-    if (res) {
-      res("game continuing");
-    } else {
-      console.warn("callback not sent");
+  socket.on("voteContinue", (res) => {
+    round = game.rounds[game.currentRound];
+    round.voteContinue();
+    res("vote counted");
+    io.emit("userVotedContinue", {
+      continue: round.votesContinue,
+      finish: round.votesFinish,
+    });
+    if (round.votesContinue === game.players.length / 2 + 1) {
+      game.nextRound();
+      currentRound = game.currentRound;
+      game.addRound(currentRound, randomRule());
+      io.emit("startRound", game.rounds[currentRound].instructions);
     }
-    game.nextRound();
-    currentRound = game.currentRound;
-    game.addRound(currentRound, randomRule());
-    io.emit("startRound", game.rounds[currentRound].instructions);
   });
 
-  socket.on("endGame", (res) => {
-    if (res) {
-      res("thanks for playing!");
-    } else {
-      console.warn("callback not sent");
+  socket.on("voteFinish", (res) => {
+    round = game.rounds[game.currentRound];
+    round.voteFinish();
+    res("vote counted");
+    io.emit("userVotedFinish", {
+      continue: round.votesContinue,
+      finish: round.votesFinish,
+    });
+    if (round.votesFinish === game.players.length / 2) {
+      delete rooms[roomID];
+      io.emit("gameEnd", "game ended");
     }
-    delete rooms[roomID];
-    io.emit("finished", game);
   });
 
-  socket.on("leaveRoom", (username) => {
-    socket.broadcast.emit("userLeft", `${username} has left the game`);
+  // socket.on("continueGame", (res) => {
+  //   if (res) {
+  //     res("game continuing");
+  //   } else {
+  //     console.warn("callback not sent");
+  //   }
+  //   game.nextRound();
+  //   currentRound = game.currentRound;
+  //   game.addRound(currentRound, randomRule());
+  //   io.emit("startRound", game.rounds[currentRound].instructions);
+  // });
+
+  socket.on("disconnect", () => {
+    if (socket.userID === room.host.userID) {
+      delete rooms[roomID];
+      io.emit("finished", game);
+    } else {
+      io.emit("userLeft");
+    }
   });
 
-  socket.onAny((event, ...args) => {
-    console.log("Server triggered event:\n", event, args);
-  });
+  // socket.onAny((event, ...args) => {
+  //   console.log("Server triggered event:\n", event, args);
+  // });
 
-  socket.onAnyOutgoing((event, ...args) => {
-    console.log("Server sent an event to client:\n", event, args);
-  });
+  // socket.onAnyOutgoing((event, ...args) => {
+  //   console.log("Server sent an event to client:\n", event, args);
+  // });
 });
-
 module.exports = { app, httpServer, io };

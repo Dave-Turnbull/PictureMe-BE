@@ -1,5 +1,5 @@
 const ioc = require("socket.io-client");
-const { httpServer, io } = require("../app.js");
+const { httpServer, io } = require("../server.js");
 
 const idRegex = /^[\w_\-]{9,10}$/i;
 
@@ -344,39 +344,57 @@ describe("PictureMe", () => {
       ],
     ]);
   });
-  it("can continue game after a round is finished", async () => {
-    const continueGame = new Promise((resolve) => {
-      clientSockets[0].emit("continueGame", (res) => {
+  it("at the end of a round users can vote to continue game", async () => {
+    const user1Continue = new Promise((resolve) => {
+      clientSockets[0].emit("voteContinue", (res) => {
         resolve(res);
       });
     });
-    const startRoundEvent = new Promise((resolve) => {
-      clientSockets[1].on("startRound", (instructions) => {
-        resolve(instructions);
+    const user1VotedEvent = new Promise((resolve) => {
+      clientSockets[1].on("userVotedContinue", (message) => {
+        console.log(message);
+        resolve(message);
       });
     });
-    const resolved = await Promise.all([continueGame, startRoundEvent]);
-    expect(resolved).toEqual(["game continuing", expect.any(String)]);
+    const resolved = await Promise.all([user1Continue, user1VotedEvent]);
+    expect(resolved).toEqual([
+      "vote counted",
+      {
+        continue: 1,
+        finish: 0,
+      },
+    ]);
   });
-  it("can end a game which sends all players the leaderboard", async () => {
-    const endGame = new Promise((resolve) => {
-      clientSockets[0].emit("endGame", (res) => {
+  it("at the end of a round users can vote to finish game", async () => {
+    const user2Finish = new Promise((resolve) => {
+      clientSockets[1].emit("voteFinish", (res) => {
         resolve(res);
       });
     });
-    const gameEnded = new Promise((resolve) => {
-      clientSockets[1].on("finished", (res) => {
-        resolve(res);
+    const user2VotedEvent = new Promise((resolve) => {
+      clientSockets[0].on("userVotedFinish", (message) => {
+        console.log(message);
+        resolve(message);
       });
     });
-    const [host, endingGame] = await Promise.all([endGame, gameEnded]);
-    expect(host).toEqual("thanks for playing!");
-    expect(endingGame).toEqual(
-      expect.objectContaining({
-        currentRound: expect.any(Number),
-        players: expect.any(Object),
-        rounds: expect.any(Object),
-      })
-    );
+    const gameFinish = await new Promise((resolve) => {
+      clientSockets[0].on("gameEnd", (message) => {
+        resolve(message);
+      });
+    });
+    const resolved = await Promise.all([
+      user2Finish,
+      user2VotedEvent,
+      gameFinish,
+    ]);
+    expect(resolved).toEqual([
+      "vote counted",
+      {
+        continue: 1,
+        finish: 1,
+      },
+      "game ended",
+    ]);
   });
+
 });
